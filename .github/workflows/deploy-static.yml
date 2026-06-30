@@ -34,7 +34,7 @@ jobs:
       SITE_BUCKET: ${{ vars.SITE_BUCKET }}
       CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.release_ref }}
       - name: Check deploy configuration
