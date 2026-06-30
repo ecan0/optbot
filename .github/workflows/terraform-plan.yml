@@ -68,7 +68,7 @@ jobs:
       - name: Terraform plan
         run: terraform plan -input=false -no-color -var-file=terraform.tfvars.example -out=tfplan
       - run: terraform show -no-color tfplan > tfplan.txt
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: terraform-plan-${{ inputs.environment }}-${{ github.sha }}
           path: infra/aws/tfplan.txt

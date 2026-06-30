@@ -33,7 +33,7 @@ jobs:
       - run: npm run test
       - run: npm run build
       - run: npm run audit:deps
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: optbot-dist-${{ github.sha }}
           path: dist/
