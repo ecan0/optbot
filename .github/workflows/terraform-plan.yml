@@ -40,14 +40,14 @@ jobs:
       run:
         working-directory: infra/aws
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Check cloud configuration
         run: |
           if [ -z "$AWS_ROLE_TO_ASSUME" ]; then
             echo "Set AWS_ROLE_TO_ASSUME on the selected GitHub Environment before running Terraform plans."
             exit 1
           fi
-      - uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
@@ -68,7 +68,7 @@ jobs:
       - name: Terraform plan
         run: terraform plan -input=false -no-color -var-file=terraform.tfvars.example -out=tfplan
       - run: terraform show -no-color tfplan > tfplan.txt
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: terraform-plan-${{ inputs.environment }}-${{ github.sha }}
           path: infra/aws/tfplan.txt
