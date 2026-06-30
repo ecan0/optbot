@@ -47,7 +47,7 @@ jobs:
             echo "Set AWS_ROLE_TO_ASSUME on the selected GitHub Environment before running Terraform plans."
             exit 1
           fi
-      - uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
