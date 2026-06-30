@@ -1,0 +1,8 @@
+# Copy this to a private backend.hcl or provide it to CI as TF_BACKEND_CONFIG_B64.
+# Do not commit real account-specific backend values if the repo is public.
+
+bucket         = "replace-with-terraform-state-bucket"
+key            = "optbot/prod/terraform.tfstate"
+region         = "us-east-1"
+dynamodb_table = "replace-with-terraform-lock-table"
+encrypt        = true

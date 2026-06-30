@@ -1,0 +1,8 @@
+title = "optbot public repo secret scan config"
+
+[allowlist]
+description = "Allow placeholder examples only. Real secrets must stay out of git."
+paths = [
+  '''\.env\.example''',
+  '''infra/aws/terraform\.tfvars\.example'''
+]

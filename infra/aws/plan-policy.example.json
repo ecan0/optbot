@@ -1,0 +1,39 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "IdentityAndCloudFrontLookups",
+      "Effect": "Allow",
+      "Action": [
+        "sts:GetCallerIdentity",
+        "cloudfront:Get*",
+        "cloudfront:List*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "TerraformReadOnlyPlan",
+      "Effect": "Allow",
+      "Action": [
+        "acm:Describe*",
+        "acm:List*",
+        "apigateway:GET",
+        "dynamodb:Describe*",
+        "dynamodb:GetItem",
+        "dynamodb:List*",
+        "iam:Get*",
+        "iam:List*",
+        "lambda:Get*",
+        "lambda:List*",
+        "logs:Describe*",
+        "logs:List*",
+        "s3:Get*",
+        "s3:List*",
+        "ssm:Describe*",
+        "ssm:GetParameter",
+        "ssm:List*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

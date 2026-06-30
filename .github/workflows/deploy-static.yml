@@ -1,0 +1,63 @@
+name: Deploy Static Site
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: GitHub Environment to deploy from.
+        type: choice
+        options:
+          - production
+        default: production
+      release_ref:
+        description: Git ref to deploy. Production should use a SemVer tag such as v0.1.0.
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-static-${{ inputs.environment }}-${{ inputs.release_ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build And Upload
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ inputs.environment }}
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+      AWS_ROLE_TO_ASSUME: ${{ vars.AWS_ROLE_TO_ASSUME }}
+      SITE_BUCKET: ${{ vars.SITE_BUCKET }}
+      CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_ref }}
+      - name: Check deploy configuration
+        run: |
+          if [ "${{ inputs.environment }}" = "production" ]; then
+            if [[ ! "${{ inputs.release_ref }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "Production deploys must use an immutable SemVer tag such as v0.1.0."
+              exit 1
+            fi
+          fi
+          if [ -z "$AWS_ROLE_TO_ASSUME" ] || [ -z "$SITE_BUCKET" ] || [ -z "$CLOUDFRONT_DISTRIBUTION_ID" ]; then
+            echo "Set AWS_ROLE_TO_ASSUME, SITE_BUCKET, and CLOUDFRONT_DISTRIBUTION_ID on the selected GitHub Environment."
+            echo "This workflow is manual and should be protected with required reviewers before production use."
+            exit 1
+          fi
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+      - run: ./scripts/deploy-static.sh

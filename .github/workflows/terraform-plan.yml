@@ -1,0 +1,76 @@
+name: Terraform Plan
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: GitHub Environment to use for AWS role and state settings.
+        type: choice
+        options:
+          - dev
+          - production
+        default: dev
+      use_remote_state:
+        description: Initialize Terraform with TF_BACKEND_CONFIG_B64 from the selected environment.
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: terraform-plan-${{ inputs.environment }}
+  cancel-in-progress: false
+
+env:
+  TF_IN_AUTOMATION: true
+
+jobs:
+  plan:
+    name: Speculative Plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ inputs.environment }}
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+      AWS_ROLE_TO_ASSUME: ${{ vars.AWS_ROLE_TO_ASSUME }}
+      TF_BACKEND_CONFIG_B64: ${{ vars.TF_BACKEND_CONFIG_B64 }}
+    defaults:
+      run:
+        working-directory: infra/aws
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check cloud configuration
+        run: |
+          if [ -z "$AWS_ROLE_TO_ASSUME" ]; then
+            echo "Set AWS_ROLE_TO_ASSUME on the selected GitHub Environment before running Terraform plans."
+            exit 1
+          fi
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+      - uses: hashicorp/setup-terraform@v3
+      - name: Terraform init
+        run: |
+          if [ "${{ inputs.use_remote_state }}" = "true" ]; then
+            if [ -z "$TF_BACKEND_CONFIG_B64" ]; then
+              echo "Set TF_BACKEND_CONFIG_B64 on the selected GitHub Environment before using remote state."
+              exit 1
+            fi
+            echo "$TF_BACKEND_CONFIG_B64" | base64 -d > backend.hcl
+            terraform init -input=false -backend-config=backend.hcl
+          else
+            terraform init -backend=false -input=false
+          fi
+      - run: terraform validate
+      - name: Terraform plan
+        run: terraform plan -input=false -no-color -var-file=terraform.tfvars.example -out=tfplan
+      - run: terraform show -no-color tfplan > tfplan.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan-${{ inputs.environment }}-${{ github.sha }}
+          path: infra/aws/tfplan.txt
+          if-no-files-found: error
+          retention-days: 7

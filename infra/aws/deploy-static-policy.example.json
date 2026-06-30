@@ -1,0 +1,27 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "UploadSiteAssets",
+      "Effect": "Allow",
+      "Action": [
+        "s3:DeleteObject",
+        "s3:GetObject",
+        "s3:ListBucket",
+        "s3:PutObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::<site-bucket-name>",
+        "arn:aws:s3:::<site-bucket-name>/*"
+      ]
+    },
+    {
+      "Sid": "InvalidateCloudFront",
+      "Effect": "Allow",
+      "Action": [
+        "cloudfront:CreateInvalidation"
+      ],
+      "Resource": "arn:aws:cloudfront::<account-id>:distribution/<distribution-id>"
+    }
+  ]
+}

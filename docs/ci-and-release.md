@@ -1,0 +1,75 @@
+# CI And Release
+
+The default CI path is safe for public pull requests and does not create AWS resources.
+
+## Pull Request Checks
+
+CI runs on pushes to `main` and pull requests:
+
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test`
+- `npm run build`
+- `npm run audit:deps`
+- `python scripts/check-public-boundary.py`
+- `terraform -chdir=infra/aws fmt -check`
+- `terraform -chdir=infra/aws init -backend=false`
+- `terraform -chdir=infra/aws validate`
+
+These checks are local/static. They do not deploy the site, upload assets to AWS, create resources, or assume an AWS role.
+
+## Build Artifacts
+
+CI uploads the built `dist/` directory as a short-lived artifact. This matches a cloud delivery pattern where the tested build is the thing that later gets promoted, while still keeping deployment manual.
+
+## Branches And Tags
+
+Use `main` as the protected integration branch. All routine changes should land through pull requests from short-lived `feature/*`, `fix/*`, or `chore/*` branches.
+
+Deployable versions are annotated SemVer tags such as `v0.1.0`. Pushing a matching tag runs the release workflow, rebuilds the app, and creates a GitHub Release with the static artifact attached.
+
+See `docs/git-strategy.md` for the full branching and tagging policy.
+
+## Manual Terraform Plan
+
+`.github/workflows/terraform-plan.yml` is manual and has no apply step. It uses GitHub OIDC when `AWS_ROLE_TO_ASSUME` is configured.
+
+Required repository or environment variables:
+
+| Variable | Purpose |
+| --- | --- |
+| `AWS_ROLE_TO_ASSUME` | IAM role ARN that GitHub Actions can assume with OIDC. |
+| `AWS_REGION` | AWS region, normally `us-east-1`. |
+| `TF_BACKEND_CONFIG_B64` | Optional base64-encoded `backend.hcl` for remote Terraform state. |
+
+The workflow can run with `terraform init -backend=false` for an account-backed speculative plan, or with remote state when `use_remote_state` is selected and backend config exists.
+
+## Manual Static Deploy
+
+`.github/workflows/deploy-static.yml` is manual and should be protected by the `production` GitHub Environment. It runs the full app check suite, builds `dist/`, uploads to S3, and creates a CloudFront invalidation.
+
+Production deploys should use an immutable SemVer tag in the `release_ref` input. The workflow rejects non-tag production deploys.
+
+Required production environment variables:
+
+| Variable | Purpose |
+| --- | --- |
+| `AWS_ROLE_TO_ASSUME` | IAM role ARN for deploy. |
+| `AWS_REGION` | AWS region, normally `us-east-1`. |
+| `SITE_BUCKET` | S3 bucket for static assets. |
+| `CLOUDFRONT_DISTRIBUTION_ID` | CloudFront distribution to invalidate. |
+
+## Release Path
+
+1. Merge app or infrastructure changes after CI passes.
+2. Create and push an annotated SemVer tag from `main`.
+3. Let the release workflow create the GitHub Release artifact.
+4. Run the manual Terraform plan workflow when AWS credentials are ready.
+5. Review the plan output.
+6. Apply Terraform from a trusted local machine or a separately approved workflow.
+7. Run the manual static deploy workflow for the tag after infrastructure exists.
+8. Point `optbot.study` at the CloudFront distribution after the certificate and alias are ready.
+
+## Cost Guardrails
+
+No AWS cost starts from CI alone. Costs begin when Terraform is applied, remote state resources are created, static assets are uploaded, or CloudFront invalidations are requested. Keep `terraform apply` out of public CI until the release process has an explicit approval gate.

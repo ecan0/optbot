@@ -1,0 +1,18 @@
+project_name    = "optbot"
+aws_region      = "us-east-1"
+domain_name     = "optbot.study"
+frontend_origin = "https://optbot.study"
+
+# Leave empty for the first apply. Add an ACM cert ARN from us-east-1 after DNS validation.
+acm_certificate_arn = ""
+
+# Enable when the Turnstile secret exists in SSM Parameter Store.
+require_turnstile               = false
+turnstile_secret_parameter_name = ""
+
+retention_days = 365
+
+tags = {
+  Environment = "prod"
+  Workload    = "study-site"
+}
