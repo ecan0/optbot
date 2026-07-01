@@ -164,9 +164,17 @@ resource "aws_dynamodb_table" "responses" {
 
   global_secondary_index {
     name            = "survey-submitted-at"
-    hash_key        = "survey_id"
-    range_key       = "submitted_at"
     projection_type = "ALL"
+
+    key_schema {
+      attribute_name = "survey_id"
+      key_type       = "HASH"
+    }
+
+    key_schema {
+      attribute_name = "submitted_at"
+      key_type       = "RANGE"
+    }
   }
 
   point_in_time_recovery {

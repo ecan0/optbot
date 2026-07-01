@@ -1,5 +1,5 @@
 project_name    = "optbot"
-aws_region      = "us-east-1"
+aws_region      = "us-west-2"
 domain_name     = "optbot.study"
 frontend_origin = "https://optbot.study"
 

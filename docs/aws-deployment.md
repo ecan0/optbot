@@ -35,7 +35,7 @@ VITE_PUBLIC_TURNSTILE_SITE_KEY=
 ```bash
 npm install
 npm run build
-AWS_REGION=us-east-1 SITE_BUCKET=<site_bucket_name> CLOUDFRONT_DISTRIBUTION_ID=<cloudfront_distribution_id> ./scripts/deploy-static.sh
+AWS_REGION=us-west-2 SITE_BUCKET=<site_bucket_name> CLOUDFRONT_DISTRIBUTION_ID=<cloudfront_distribution_id> ./scripts/deploy-static.sh
 ```
 
 ## 4. Attach `optbot.study`

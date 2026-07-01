@@ -7,7 +7,7 @@ variable "project_name" {
 variable "aws_region" {
   description = "AWS region for S3, Lambda, API Gateway, DynamoDB, and SSM. CloudFront is global."
   type        = string
-  default     = "us-east-1"
+  default     = "us-west-2"
 }
 
 variable "domain_name" {

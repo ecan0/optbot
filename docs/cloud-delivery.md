@@ -25,7 +25,7 @@ Environment variables:
 | Variable | Environment | Purpose |
 | --- | --- | --- |
 | `AWS_ROLE_TO_ASSUME` | `dev`, `production` | IAM role ARN for GitHub OIDC. |
-| `AWS_REGION` | `dev`, `production` | Usually `us-east-1`. |
+| `AWS_REGION` | `dev`, `production` | Regional AWS workload region, currently `us-west-2`. |
 | `TF_BACKEND_CONFIG_B64` | `production` | Base64-encoded Terraform backend config. |
 | `SITE_BUCKET` | `production` | S3 bucket that receives built assets. |
 | `CLOUDFRONT_DISTRIBUTION_ID` | `production` | CloudFront distribution invalidated after upload. |

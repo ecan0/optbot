@@ -33,7 +33,7 @@ jobs:
     timeout-minutes: 20
     environment: ${{ inputs.environment }}
     env:
-      AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+      AWS_REGION: ${{ vars.AWS_REGION || 'us-west-2' }}
       AWS_ROLE_TO_ASSUME: ${{ vars.AWS_ROLE_TO_ASSUME }}
       TF_BACKEND_CONFIG_B64: ${{ vars.TF_BACKEND_CONFIG_B64 }}
     defaults:
