@@ -83,7 +83,7 @@ After infrastructure exists, deploy the latest build with:
 
 ```bash
 npm run build
-AWS_REGION=us-east-1 SITE_BUCKET=<bucket-name> CLOUDFRONT_DISTRIBUTION_ID=<distribution-id> ./scripts/deploy-static.sh
+AWS_REGION=us-west-2 SITE_BUCKET=<bucket-name> CLOUDFRONT_DISTRIBUTION_ID=<distribution-id> ./scripts/deploy-static.sh
 ```
 
 ## Project Layout

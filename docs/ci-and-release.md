@@ -39,7 +39,7 @@ Required repository or environment variables:
 | Variable | Purpose |
 | --- | --- |
 | `AWS_ROLE_TO_ASSUME` | IAM role ARN that GitHub Actions can assume with OIDC. |
-| `AWS_REGION` | AWS region, normally `us-east-1`. |
+| `AWS_REGION` | AWS workload region, currently `us-west-2`. |
 | `TF_BACKEND_CONFIG_B64` | Optional base64-encoded `backend.hcl` for remote Terraform state. |
 
 The workflow can run with `terraform init -backend=false` for an account-backed speculative plan, or with remote state when `use_remote_state` is selected and backend config exists.
@@ -55,7 +55,7 @@ Required production environment variables:
 | Variable | Purpose |
 | --- | --- |
 | `AWS_ROLE_TO_ASSUME` | IAM role ARN for deploy. |
-| `AWS_REGION` | AWS region, normally `us-east-1`. |
+| `AWS_REGION` | AWS workload region, currently `us-west-2`. |
 | `SITE_BUCKET` | S3 bucket for static assets. |
 | `CLOUDFRONT_DISTRIBUTION_ID` | CloudFront distribution to invalidate. |
 
