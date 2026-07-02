@@ -24,7 +24,7 @@ CI uploads the built `dist/` directory as a short-lived artifact. This matches a
 
 ## Branches And Tags
 
-Use `main` as the protected integration branch. All routine changes should land through pull requests from short-lived `feature/*`, `fix/*`, or `chore/*` branches.
+Use `main` as the protected integration branch. All routine changes should land through pull requests from short-lived `survey/*`, `feature/*`, `fix/*`, `chore/*`, or `docs/*` branches.
 
 Deployable versions are annotated SemVer tags such as `v0.1.0`. Pushing a matching tag runs the release workflow, rebuilds the app, and creates a GitHub Release with the static artifact attached.
 
