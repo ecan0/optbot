@@ -68,6 +68,8 @@ Do not move published tags. If a release is wrong, publish a new patch tag.
 
 Production deploys should use immutable SemVer tags, not a branch tip. The manual static deploy workflow enforces this by requiring `release_ref` to look like `v0.1.0` for the `production` environment.
 
+Dev deploys are different: the `dev` GitHub Environment may deploy a short-lived branch, tag, or SHA so survey work can be reviewed before cutover. The dev site must use its own non-production URL and separate static hosting targets; do not use the live root domain for dev previews.
+
 The intended flow is:
 
 1. Merge PR to `main`.

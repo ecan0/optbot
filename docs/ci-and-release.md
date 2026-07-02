@@ -46,11 +46,11 @@ The workflow can run with `terraform init -backend=false` for an account-backed 
 
 ## Manual Static Deploy
 
-`.github/workflows/deploy-static.yml` is manual and should be protected by the `production` GitHub Environment. It runs the full app check suite, builds `dist/`, uploads to S3, and creates a CloudFront invalidation.
+`.github/workflows/deploy-static.yml` is manual and deploys through the selected GitHub Environment. It runs the full app check suite, builds `dist/`, uploads to S3, and creates a CloudFront invalidation.
 
-Production deploys should use an immutable SemVer tag in the `release_ref` input. The workflow rejects non-tag production deploys.
+Dev deploys may use a branch, tag, or SHA in the `release_ref` input. Production deploys must use an immutable SemVer tag. The workflow rejects non-tag production deploys.
 
-Required production environment variables:
+Required environment variables:
 
 | Variable | Purpose |
 | --- | --- |
@@ -58,6 +58,9 @@ Required production environment variables:
 | `AWS_REGION` | AWS workload region, currently `us-west-2`. |
 | `SITE_BUCKET` | S3 bucket for static assets. |
 | `CLOUDFRONT_DISTRIBUTION_ID` | CloudFront distribution to invalidate. |
+| `VITE_PUBLIC_SITE_URL` | Site URL baked into the frontend. Required for `dev`; production defaults to `https://optbot.study` if unset. |
+
+For `dev`, `VITE_PUBLIC_SITE_URL` must not be `https://optbot.study`. Use a dev CloudFront URL or a subdomain such as `https://dev.optbot.study`. If the dev URL should only be visible to selected people, enforce that at the hosting front door, for example with Cloudflare Access, AWS WAF, or a temporary CloudFront Function gate.
 
 ## Release Path
 
@@ -69,6 +72,8 @@ Required production environment variables:
 6. Apply Terraform from a trusted local machine or a separately approved workflow.
 7. Run the manual static deploy workflow for the tag after infrastructure exists.
 8. Point `optbot.study` at the CloudFront distribution after the certificate and alias are ready.
+
+For survey iteration before cutover, run the manual static deploy workflow against the `dev` environment with the survey branch as `release_ref`. Promote to production only after the changes have merged to `main` and been tagged.
 
 ## Cost Guardrails
 
