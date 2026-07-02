@@ -6,10 +6,11 @@ OptBot uses a cloud-first delivery model, but CI must not create infrastructure 
 
 1. Pull requests run static checks only.
 2. `main` produces a short-lived build artifact, still with no AWS writes.
-3. SemVer tags create GitHub Release artifacts.
-4. Terraform plan is manual and uses GitHub OIDC instead of static AWS keys.
-5. Terraform apply stays local or behind a separate protected approval path.
-6. Static site deployment is manual, tag-based, and protected by a GitHub Environment.
+3. Dev static deploys can be run manually from a branch or other review ref.
+4. SemVer tags create GitHub Release artifacts.
+5. Terraform plan is manual and uses GitHub OIDC instead of static AWS keys.
+6. Terraform apply stays local or behind a separate protected approval path.
+7. Production static deployment is manual, tag-based, and protected by a GitHub Environment.
 
 ## GitHub Environments
 
@@ -17,7 +18,7 @@ Create these environments before enabling cloud workflows:
 
 | Environment | Purpose | Required reviewers |
 | --- | --- | --- |
-| `dev` | Optional cloud plan testing. | Optional. |
+| `dev` | Optional cloud plan testing and branch-based survey preview. | Optional. |
 | `production` | Production plan and static deploy. | Yes. |
 
 Environment variables:
@@ -27,10 +28,22 @@ Environment variables:
 | `AWS_ROLE_TO_ASSUME` | `dev`, `production` | IAM role ARN for GitHub OIDC. |
 | `AWS_REGION` | `dev`, `production` | Regional AWS workload region, currently `us-west-2`. |
 | `TF_BACKEND_CONFIG_B64` | `production` | Base64-encoded Terraform backend config. |
-| `SITE_BUCKET` | `production` | S3 bucket that receives built assets. |
-| `CLOUDFRONT_DISTRIBUTION_ID` | `production` | CloudFront distribution invalidated after upload. |
+| `SITE_BUCKET` | `dev`, `production` | S3 bucket that receives built assets. Use separate buckets per environment. |
+| `CLOUDFRONT_DISTRIBUTION_ID` | `dev`, `production` | CloudFront distribution invalidated after upload. Use separate distributions per environment. |
+| `VITE_PUBLIC_SITE_URL` | `dev`, `production` | Public URL baked into the frontend build. Dev must use a non-production URL. |
+| `VITE_PUBLIC_API_BASE_URL` | `dev`, `production` | Optional API base URL. Leave empty for preview-only frontend testing. |
 
 Use environment variables, not committed files, for account-specific values.
+
+## Dev Preview Isolation
+
+Keep survey preview changes away from the live root domain until cutover:
+
+- Use `dev` for manual branch deployments from survey work branches such as `survey/rebuild-flow`.
+- Set `VITE_PUBLIC_SITE_URL` on the `dev` GitHub Environment to a non-production origin such as a dev CloudFront URL or a subdomain like `https://dev.optbot.study`.
+- Do not point dev traffic at `https://optbot.study`; the static deploy workflow rejects that configuration for `dev`.
+- Use separate dev and production S3 buckets and CloudFront distributions so uploads and invalidations cannot affect the live site.
+- If the dev subdomain should be private, put access control at the edge or DNS/front-door layer. Reasonable options include Cloudflare Access, an IP allow list through AWS WAF, or a temporary CloudFront Function gate. Keep any credentials or allow lists outside this public repository.
 
 ## Terraform State
 
@@ -60,7 +73,7 @@ The deploy policy is intentionally limited to static asset upload and CloudFront
 
 ## Release Tags
 
-Production deploys should use annotated tags like `v0.1.0`. This makes the deployed version easy to identify later and avoids deploying an unreviewed moving branch tip.
+Production deploys should use annotated tags like `v0.1.0`. This makes the deployed version easy to identify later and avoids deploying an unreviewed moving branch tip. Dev deploys may use branch names or other refs for review.
 
 See `docs/git-strategy.md` for branch names, tag format, and hotfix rules.
 
