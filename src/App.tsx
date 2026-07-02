@@ -121,6 +121,10 @@ function App() {
   return (
     <main className="page-shell">
       <section className="survey-panel" aria-labelledby="step-title">
+        <div className="preview-banner" role="status">
+          Public preview. This placeholder survey is for infrastructure testing only.
+        </div>
+
         <div className="topline">
           <div className="brand-row">
             <span className="brand-mark"><ShieldCheck size={22} /></span>
