@@ -53,6 +53,18 @@ button:disabled {
   width: 100%;
 }
 
+.preview-banner {
+  background: #fff7db;
+  border: 1px solid #e2c45b;
+  border-radius: 8px;
+  color: #5b4712;
+  font-size: 0.94rem;
+  font-weight: 800;
+  line-height: 1.4;
+  margin-bottom: 22px;
+  padding: 12px 14px;
+}
+
 .topline,
 .brand-row,
 .actions-row {

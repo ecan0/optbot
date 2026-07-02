@@ -299,6 +299,11 @@ resource "aws_apigatewayv2_stage" "default" {
   api_id      = aws_apigatewayv2_api.responses.id
   name        = "$default"
   auto_deploy = true
+
+  default_route_settings {
+    throttling_burst_limit = var.api_throttle_burst_limit
+    throttling_rate_limit  = var.api_throttle_rate_limit
+  }
 }
 
 resource "aws_lambda_permission" "api_gateway" {
@@ -307,4 +312,42 @@ resource "aws_lambda_permission" "api_gateway" {
   function_name = aws_lambda_function.submit_response.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.responses.execution_arn}/*/*"
+}
+
+resource "aws_cloudwatch_metric_alarm" "submit_response_errors" {
+  alarm_name          = "${local.name}-submit-response-errors"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 1
+  metric_name         = "Errors"
+  namespace           = "AWS/Lambda"
+  period              = 300
+  statistic           = "Sum"
+  threshold           = 1
+  alarm_description   = "Submit Lambda returned at least one error in five minutes."
+  treat_missing_data  = "notBreaching"
+  alarm_actions       = var.alarm_actions
+  ok_actions          = var.alarm_actions
+
+  dimensions = {
+    FunctionName = aws_lambda_function.submit_response.function_name
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "submit_response_throttles" {
+  alarm_name          = "${local.name}-submit-response-throttles"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 1
+  metric_name         = "Throttles"
+  namespace           = "AWS/Lambda"
+  period              = 300
+  statistic           = "Sum"
+  threshold           = 1
+  alarm_description   = "Submit Lambda was throttled, which may indicate unexpected traffic or too-low concurrency."
+  treat_missing_data  = "notBreaching"
+  alarm_actions       = var.alarm_actions
+  ok_actions          = var.alarm_actions
+
+  dimensions = {
+    FunctionName = aws_lambda_function.submit_response.function_name
+  }
 }

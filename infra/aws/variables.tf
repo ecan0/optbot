@@ -74,6 +74,28 @@ variable "lambda_log_retention_days" {
   default     = 14
 }
 
+variable "api_throttle_burst_limit" {
+  description = "API Gateway burst throttle for the response submission route."
+  type        = number
+  default     = 10
+
+  validation {
+    condition     = var.api_throttle_burst_limit >= 1 && var.api_throttle_burst_limit <= 100
+    error_message = "api_throttle_burst_limit must be between 1 and 100."
+  }
+}
+
+variable "api_throttle_rate_limit" {
+  description = "API Gateway steady-state requests per second for the response submission route."
+  type        = number
+  default     = 2
+
+  validation {
+    condition     = var.api_throttle_rate_limit >= 1 && var.api_throttle_rate_limit <= 50
+    error_message = "api_throttle_rate_limit must be between 1 and 50."
+  }
+}
+
 variable "enable_bucket_versioning" {
   description = "Enable S3 bucket versioning for static assets."
   type        = bool
@@ -83,7 +105,13 @@ variable "enable_bucket_versioning" {
 variable "enable_dynamodb_pitr" {
   description = "Enable point-in-time recovery for the response table."
   type        = bool
-  default     = false
+  default     = true
+}
+
+variable "alarm_actions" {
+  description = "Optional SNS topic ARNs for CloudWatch alarms. Leave empty to create alarms without notifications."
+  type        = list(string)
+  default     = []
 }
 
 variable "cloudfront_price_class" {

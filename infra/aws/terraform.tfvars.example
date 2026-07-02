@@ -10,7 +10,10 @@ acm_certificate_arn = ""
 require_turnstile               = false
 turnstile_secret_parameter_name = ""
 
-retention_days = 365
+retention_days               = 365
+enable_dynamodb_pitr         = true
+api_throttle_burst_limit     = 10
+api_throttle_rate_limit      = 2
 
 tags = {
   Environment = "prod"
