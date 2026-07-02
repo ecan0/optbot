@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="360" viewBox="0 0 560 360" role="img" aria-label="Transparency flow consent notice">
+  <rect width="560" height="360" rx="18" fill="#f1f4fb"/>
+  <rect x="28" y="30" width="504" height="300" rx="16" fill="#ffffff" stroke="#b7c6df" stroke-width="2"/>
+  <rect x="58" y="62" width="224" height="16" rx="8" fill="#345f9f"/>
+  <rect x="58" y="96" width="322" height="10" rx="5" fill="#6d7f9b"/>
+  <path d="M111 182h338" stroke="#b6c1cc" stroke-width="5" stroke-linecap="round"/>
+  <g>
+    <circle cx="112" cy="182" r="28" fill="#345f9f"/>
+    <circle cx="196" cy="182" r="28" fill="#7b5686"/>
+    <circle cx="280" cy="182" r="28" fill="#1f6f64"/>
+    <circle cx="364" cy="182" r="28" fill="#a06f21"/>
+    <circle cx="448" cy="182" r="28" fill="#52615a"/>
+  </g>
+  <g fill="#ffffff" font-family="Arial, sans-serif" font-size="18" font-weight="700" text-anchor="middle">
+    <text x="112" y="188">1</text>
+    <text x="196" y="188">2</text>
+    <text x="280" y="188">3</text>
+    <text x="364" y="188">4</text>
+    <text x="448" y="188">5</text>
+  </g>
+  <rect x="76" y="236" width="74" height="8" rx="4" fill="#52615a"/>
+  <rect x="160" y="236" width="74" height="8" rx="4" fill="#52615a"/>
+  <rect x="244" y="236" width="74" height="8" rx="4" fill="#52615a"/>
+  <rect x="328" y="236" width="74" height="8" rx="4" fill="#52615a"/>
+  <rect x="412" y="236" width="74" height="8" rx="4" fill="#52615a"/>
+  <rect x="80" y="254" width="64" height="7" rx="3.5" fill="#909ba8"/>
+  <rect x="164" y="254" width="64" height="7" rx="3.5" fill="#909ba8"/>
+  <rect x="248" y="254" width="64" height="7" rx="3.5" fill="#909ba8"/>
+  <rect x="332" y="254" width="64" height="7" rx="3.5" fill="#909ba8"/>
+  <rect x="416" y="254" width="64" height="7" rx="3.5" fill="#909ba8"/>
+</svg>
