@@ -9,13 +9,9 @@ This differs from private infrastructure repositories that may use a long-lived 
 | Branch | Purpose |
 | --- | --- |
 | `main` | Protected integration branch. All normal changes land here through pull requests. |
-| `survey/<short-name>` | Short-lived branches for participant-facing survey flow, content, and UI work. |
-| `feature/<short-name>` | Short-lived branches for app capabilities that are not specifically survey-flow work. |
+| `feature/<short-name>` | Short-lived branches for app, docs, or infrastructure work. |
 | `fix/<short-name>` | Short-lived branches for bug fixes. |
 | `chore/<short-name>` | Short-lived branches for maintenance, tooling, and dependency updates. |
-| `docs/<short-name>` | Short-lived branches for documentation-only changes. |
-
-Use project-oriented names even for Codex-assisted work. The `codex/` prefix is optional for disposable agent bookkeeping, but it is not part of the normal branch strategy and is not required for verified commits.
 
 Avoid long-lived release branches unless the project has multiple supported production lines. For the expected project size, release tags are simpler.
 
@@ -94,17 +90,6 @@ git switch -c fix/<short-name>
 After review and merge, tag a patch release such as `v0.2.2`.
 
 Only create a temporary `release/<version>` branch if production needs an urgent fix while `main` has unreleased changes that cannot ship.
-
-## Survey Rebuild Branches
-
-Use `survey/<short-name>` for the React rebuild and related participant-facing work. Good examples:
-
-- `survey/rebuild-flow`
-- `survey/consent-copy`
-- `survey/choice-layout`
-- `survey/turnstile`
-
-Keep backend or infrastructure-only work separate unless the change must land atomically with the survey UI.
 
 ## Pre-Release Tags
 
