@@ -15,11 +15,11 @@
     "audit:deps": "npm audit --omit=optional"
   },
   "dependencies": {
-    "@xstate/react": "^5.0.0",
+    "@xstate/react": "^6.1.0",
     "lucide-react": "^0.468.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "xstate": "^5.0.0",
+    "xstate": "^5.32.4",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -32,8 +32,8 @@
     "eslint-plugin-react-refresh": "^0.5.3",
     "globals": "^17.7.0",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.62.1",
-    "vite": "^8.1.2",
-    "vitest": "^4.1.9"
+    "typescript-eslint": "^8.63.0",
+    "vite": "^8.1.3",
+    "vitest": "^4.1.10"
   }
 }
