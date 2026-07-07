@@ -15,7 +15,7 @@
     "audit:deps": "npm audit --omit=optional"
   },
   "dependencies": {
-    "@xstate/react": "^5.0.0",
+    "@xstate/react": "^6.1.0",
     "lucide-react": "^0.468.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
