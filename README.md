@@ -35,7 +35,8 @@ The production build is written to `dist/`.
 | Variable | Purpose |
 | --- | --- |
 | `VITE_PUBLIC_SITE_URL` | Public site URL, normally `https://optbot.study`. |
-| `VITE_PUBLIC_API_BASE_URL` | API base URL for response submission. Leave empty for preview mode. |
+| `VITE_PUBLIC_API_BASE_URL` | API base URL for response submission. Required for live collection; never contacted in preview mode. |
+| `VITE_PUBLIC_COLLECTION_MODE` | Explicit response gate: `preview` never sends responses; `live` requires an API endpoint. Defaults to `preview`. |
 | `VITE_PUBLIC_SURVEY_ID` | Stable identifier for the current survey version. |
 | `VITE_PUBLIC_TURNSTILE_SITE_KEY` | Optional public Turnstile site key. |
 

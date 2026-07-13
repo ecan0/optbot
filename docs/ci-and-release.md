@@ -59,6 +59,8 @@ Required environment variables:
 | `SITE_BUCKET` | S3 bucket for static assets. |
 | `CLOUDFRONT_DISTRIBUTION_ID` | CloudFront distribution to invalidate. |
 | `VITE_PUBLIC_SITE_URL` | Site URL baked into the frontend. Required for `dev`; production defaults to `https://optbot.study` if unset. |
+| `VITE_PUBLIC_API_BASE_URL` | Response API base URL. Required only when collection mode is `live`. |
+| `VITE_PUBLIC_COLLECTION_MODE` | Explicit submission gate. Defaults to `preview`; set to `live` only for approved response collection with an API endpoint. |
 
 For `dev`, `VITE_PUBLIC_SITE_URL` must not be `https://optbot.study`. Use a dev CloudFront URL or a subdomain such as `https://dev.optbot.study`. If the dev URL should only be visible to selected people, enforce that at the hosting front door, for example with Cloudflare Access, AWS WAF, or a temporary CloudFront Function gate.
 
@@ -74,6 +76,8 @@ For `dev`, `VITE_PUBLIC_SITE_URL` must not be `https://optbot.study`. Use a dev 
 8. Point `optbot.study` at the CloudFront distribution after the certificate and alias are ready.
 
 For survey iteration before cutover, run the manual static deploy workflow against the `dev` environment with the survey branch as `release_ref`. Promote to production only after the changes have merged to `main` and been tagged.
+
+The deploy workflow also injects the checked-out release ref and commit SHA into the frontend build. Preview mode remains non-collecting even when an API URL is present.
 
 ## Cost Guardrails
 

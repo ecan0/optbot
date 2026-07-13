@@ -27,13 +27,15 @@ export function CompletionScreen({ result, participationDeclined, onDownload }: 
           {participationDeclined
             ? 'No response was submitted because participation was declined.'
             : isPreview
-              ? `Preview response reference: ${result?.responseId}`
+              ? 'Preview complete. Nothing was stored.'
               : `Response reference: ${result?.responseId}`}
         </p>
-        <button className="secondary-action" type="button" onClick={onDownload}>
-          <Download size={18} />
-          Download preview JSON
-        </button>
+        {isPreview ? (
+          <button className="secondary-action" type="button" onClick={onDownload}>
+            <Download size={18} />
+            Download preview JSON
+          </button>
+        ) : null}
       </section>
     </main>
   );
