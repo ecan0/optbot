@@ -145,13 +145,13 @@ export function NoticePresentation({ variant, surface }: NoticePresentationProps
         <div className="notice-detail-stack">
           {variant.badges ? <TrustBadges badges={variant.badges} /> : null}
           {variant.flow ? <TransparencyFlow variant={variant} /> : null}
-          <ul className="notice-section-list compact">
-            {referenceNoticeSections.map((section) => (
-              <NoticeSectionRow key={section.id} section={section} />
-            ))}
-          </ul>
         </div>
       </div>
+      <ul className="notice-section-list notice-section-grid">
+        {referenceNoticeSections.map((section) => (
+          <NoticeSectionRow key={section.id} section={section} />
+        ))}
+      </ul>
     </section>
   );
 }
