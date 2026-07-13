@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, Send, ShieldCheck } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { publicRuntimeConfig } from '../config';
 
 type SurveyFrameProps = {
   children: ReactNode;
@@ -37,9 +38,11 @@ export function SurveyFrame({
           </span>
           <span>OptBot Study</span>
         </div>
-        <div className="preview-banner" role="status">
-          Public preview. Study flow is visible for testing; production collection requires a configured API endpoint.
-        </div>
+        {publicRuntimeConfig.collectionMode === 'preview' ? (
+          <div className="preview-banner" role="status">
+            Design preview. Responses are not stored.
+          </div>
+        ) : null}
       </header>
 
       <div className="study-layout">

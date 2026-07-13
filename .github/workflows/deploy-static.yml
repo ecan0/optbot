@@ -36,12 +36,16 @@ jobs:
       CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
       VITE_PUBLIC_SITE_URL: ${{ vars.VITE_PUBLIC_SITE_URL }}
       VITE_PUBLIC_API_BASE_URL: ${{ vars.VITE_PUBLIC_API_BASE_URL }}
+      VITE_PUBLIC_COLLECTION_MODE: ${{ vars.VITE_PUBLIC_COLLECTION_MODE || 'preview' }}
+      VITE_PUBLIC_RELEASE_REF: ${{ inputs.release_ref }}
       VITE_PUBLIC_SURVEY_ID: ${{ vars.VITE_PUBLIC_SURVEY_ID || 'optbot-study-v1' }}
       VITE_PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.VITE_PUBLIC_TURNSTILE_SITE_KEY }}
     steps:
       - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.release_ref }}
+      - name: Record checked-out build
+        run: echo "VITE_PUBLIC_BUILD_SHA=$(git rev-parse --short=12 HEAD)" >> "$GITHUB_ENV"
       - name: Check deploy configuration
         run: |
           if [ "${{ inputs.environment }}" = "production" ]; then
@@ -64,6 +68,14 @@ jobs:
               echo "Dev deploys must not use the live root domain optbot.study."
               exit 1
             fi
+          fi
+          if [[ ! "$VITE_PUBLIC_COLLECTION_MODE" =~ ^(preview|live)$ ]]; then
+            echo "VITE_PUBLIC_COLLECTION_MODE must be preview or live."
+            exit 1
+          fi
+          if [ "$VITE_PUBLIC_COLLECTION_MODE" = "live" ] && [ -z "$VITE_PUBLIC_API_BASE_URL" ]; then
+            echo "Live collection requires VITE_PUBLIC_API_BASE_URL."
+            exit 1
           fi
           if [ -z "$AWS_ROLE_TO_ASSUME" ] || [ -z "$SITE_BUCKET" ] || [ -z "$CLOUDFRONT_DISTRIBUTION_ID" ]; then
             echo "Set AWS_ROLE_TO_ASSUME, SITE_BUCKET, and CLOUDFRONT_DISTRIBUTION_ID on the selected GitHub Environment."
