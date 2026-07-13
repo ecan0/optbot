@@ -29,32 +29,60 @@ export function SurveyFrame({
   onBack,
   onNext
 }: SurveyFrameProps) {
+  const isPreview = publicRuntimeConfig.collectionMode === 'preview';
+  const buildLabel =
+    publicRuntimeConfig.buildSha === 'local'
+      ? publicRuntimeConfig.releaseRef
+      : `${publicRuntimeConfig.releaseRef} · ${publicRuntimeConfig.buildSha.slice(0, 7)}`;
+
   return (
     <main className="page-shell">
       <header className="study-header">
         <div className="brand-row">
-          <span className="brand-mark">
-            <ShieldCheck size={22} />
+          <span className="brand-mark" aria-hidden="true">
+            <ShieldCheck size={21} />
           </span>
-          <span>OptBot Study</span>
+          <span className="brand-copy">
+            <strong>OptBot</strong>
+            <small>Usable security study</small>
+          </span>
         </div>
-        {publicRuntimeConfig.collectionMode === 'preview' ? (
-          <div className="preview-banner" role="status">
-            Design preview. Responses are not stored.
+        {isPreview ? (
+          <div className="preview-cluster">
+            <div className="preview-banner" role="status">
+              <span className="preview-beacon" aria-hidden="true" />
+              <span>
+                <strong>Design preview</strong>
+                <small>Responses are not stored</small>
+              </span>
+            </div>
+            <code className="build-identity" title={`Preview build ${buildLabel}`}>
+              {buildLabel}
+            </code>
           </div>
         ) : null}
       </header>
 
       <div className="study-layout">
-        <aside className="progress-panel" aria-label="Survey progress">
-          <span className="step-count">
-            Step {currentStep} of {totalSteps}
-          </span>
-          <div className="progress-track" aria-hidden="true">
+        <section className="progress-panel" aria-label="Survey progress">
+          <div className="progress-meta">
+            <span className="step-count">
+              Step {currentStep} of {totalSteps}
+            </span>
+            <span className="progress-value">{progress}% complete</span>
+          </div>
+          <div
+            aria-label={`${progress}% complete`}
+            aria-valuemax={100}
+            aria-valuemin={0}
+            aria-valuenow={progress}
+            className="progress-track"
+            role="progressbar"
+          >
             <span style={{ width: `${progress}%` }} />
           </div>
-          <p>Review the notice, compare formats, and answer the follow-up ratings.</p>
-        </aside>
+          <p>Review the notices, compare formats, and share your assessment.</p>
+        </section>
 
         <section className="step-region" aria-labelledby={titleId}>
           {children}
