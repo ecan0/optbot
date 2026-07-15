@@ -123,7 +123,7 @@ export const studySteps: StudyStep[] = [
     eyebrow: 'Welcome',
     title: 'Review AI privacy notices as if you were enrolling in a service.',
     prompt:
-      'This short study asks how different privacy notice presentations affect trust, comfort, and willingness to share data for AI training.',
+      'This short study asks how different privacy notice presentations affect trust and understanding when deciding whether to share data for AI training.',
     kind: 'intro',
     illustrationAsset: consentDashboard,
     highlights: [
@@ -307,18 +307,6 @@ export const studySteps: StudyStep[] = [
         lowLabel: 'Difficult',
         highLabel: 'Easy'
       },
-      {
-        id: 'comfort_sharing',
-        label: 'How comfortable would you be sharing your data to improve this AI system?',
-        lowLabel: 'Very uncomfortable',
-        highLabel: 'Very comfortable'
-      },
-      {
-        id: 'willingness_to_share',
-        label: 'I would be willing to share data under the terms shown in the notice.',
-        lowLabel: 'Unwilling',
-        highLabel: 'Very willing'
-      }
     ]
   },
   {
