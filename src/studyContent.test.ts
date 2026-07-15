@@ -32,6 +32,22 @@ describe('study content', () => {
     }
   });
 
+  it('keeps the rating set focused on distinct outcomes', () => {
+    const ratingStep = studySteps.find((step) => step.id === 'notice_evaluation');
+
+    if (!ratingStep || ratingStep.kind !== 'likert-group') {
+      throw new Error('Notice evaluation must be a Likert group');
+    }
+
+    expect(ratingStep.questions.map((question) => question.id)).toEqual([
+      'clarity_rating',
+      'trust_rating',
+      'confidence_rating',
+      'completeness_rating',
+      'ease_of_use_rating'
+    ]);
+  });
+
   it('defines fixed notice variants with recorded design metadata', () => {
     expect(noticeVariants).toHaveLength(3);
 
