@@ -72,9 +72,7 @@ describe('survey logic', () => {
         trust_rating: 4,
         confidence_rating: 4,
         completeness_rating: 5,
-        ease_of_use_rating: 4,
-        comfort_sharing: 3,
-        willingness_to_share: 3
+        ease_of_use_rating: 4
       },
       variant,
       startedAt: '2026-06-30T00:00:00.000Z',
