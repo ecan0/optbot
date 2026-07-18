@@ -3,10 +3,12 @@ import { submitResponse, type SubmitResult } from './api';
 import { CompletionScreen } from './components/CompletionScreen';
 import { StepRenderer } from './components/StepRenderer';
 import { SurveyFrame } from './components/SurveyFrame';
-import { consentVersion, studySteps } from './studyContent';
+import { buildStudySteps, consentVersion } from './studyContent';
 import {
+  assignNoticePresentationOrder,
   assignNoticeVariant,
   buildResponsePayload,
+  getStepCompletion,
   getStepValidationMessage,
   isConsentDenied,
   isStepComplete
@@ -24,12 +26,30 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [submitResult, setSubmitResult] = useState<SubmitResult | undefined>();
   const assignedVariant = useMemo(() => assignNoticeVariant(sessionStorage, crypto), []);
-
+  const noticeOrder = useMemo(() => assignNoticePresentationOrder(sessionStorage, crypto), []);
+  const studySteps = useMemo(() => buildStudySteps(noticeOrder), [noticeOrder]);
   const step = studySteps[stepIndex];
   const progress = Math.round(((stepIndex + 1) / studySteps.length) * 100);
   const isLastStep = stepIndex === studySteps.length - 1;
   const participationDeclined = isConsentDenied(answers);
+  const stepCompletion = getStepCompletion(step, answers);
+  const canAdvance = isStepComplete(step, answers);
+  const remainingRequired = stepCompletion.total - stepCompletion.completed;
+  let primaryActionLabel = isLastStep ? 'Submit response' : 'Continue';
 
+  if (step.id === 'study_intro') {
+    primaryActionLabel = 'Begin study';
+  } else if (step.id === 'participation_consent') {
+    primaryActionLabel =
+      answers.participation_consent === 'consent_yes'
+        ? 'Confirm participation'
+        : answers.participation_consent === 'consent_no'
+          ? 'Confirm and exit'
+          : 'Choose participation option';
+  } else if (!canAdvance) {
+    primaryActionLabel =
+      step.kind === 'notice-review' ? 'Review required notice' : 'Complete required choices';
+  }
   useEffect(() => {
     if (stepIndex === 0) {
       return;
@@ -44,7 +64,6 @@ function App() {
     setError(null);
   }
 
-
   function createPayload(completedAt = new Date().toISOString()) {
     return buildResponsePayload({
       surveyId,
@@ -52,6 +71,7 @@ function App() {
       answers,
       variant: assignedVariant,
       startedAt,
+      noticeOrder,
       completedAt,
       userAgent: navigator.userAgent
     });
@@ -114,13 +134,19 @@ function App() {
   return (
     <SurveyFrame
       canGoBack={stepIndex > 0}
+      canAdvance={canAdvance}
       currentStep={stepIndex + 1}
       error={error}
-      isLastStep={isLastStep}
       isSubmitting={status === 'submitting'}
       onBack={() => setStepIndex((index) => Math.max(index - 1, 0))}
       onNext={handleNext}
+      incompleteMessage={
+        remainingRequired > 0
+          ? `${remainingRequired} required ${remainingRequired === 1 ? 'choice' : 'choices'} remaining`
+          : null
+      }
       progress={progress}
+      primaryActionLabel={primaryActionLabel}
       stepId={step.id}
       stepKind={step.kind}
       titleId="step-title"
@@ -134,9 +160,9 @@ function App() {
           answers={answers}
           assignedVariant={assignedVariant}
           onAnswer={setAnswer}
+          noticeOrder={noticeOrder}
           step={step}
         />
-        {!isStepComplete(step, answers) && step.required ? <p className="required-note">Required</p> : null}
       </div>
     </SurveyFrame>
   );

@@ -1,13 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { consentVersion, noticeVariants, studySteps } from './studyContent';
+import { buildStudySteps, consentVersion, noticeVariants } from './studyContent';
 import {
+  assignNoticePresentationOrder,
   buildResponsePayload,
+  getNoticeSlot,
+  getStepCompletion,
   getStepValidationMessage,
   isConsentDenied,
   isStepComplete,
   reviewAcknowledgedValue
 } from './surveyLogic';
 import type { SurveyAnswers } from './types';
+
+const studySteps = buildStudySteps('assigned-first');
 
 describe('survey logic', () => {
   it('recognizes the consent denial path without submitting', () => {
@@ -18,9 +23,38 @@ describe('survey logic', () => {
     expect(isConsentDenied(answers)).toBe(true);
   });
 
-  it('validates required grouped answers', () => {
+  it('persists a counterbalanced notice order for the session', () => {
+    const stored = new Map<string, string>();
+    const store = {
+      getItem: (key: string) => stored.get(key) ?? null,
+      setItem: (key: string, value: string) => stored.set(key, value)
+    };
+    const referenceFirstCrypto = {
+      getRandomValues<T extends ArrayBufferView | null>(array: T): T {
+        if (array instanceof Uint32Array) {
+          array[0] = 1;
+        }
+        return array;
+      }
+    };
+    const assignedFirstCrypto = {
+      getRandomValues<T extends ArrayBufferView | null>(array: T): T {
+        if (array instanceof Uint32Array) {
+          array[0] = 0;
+        }
+        return array;
+      }
+    };
+
+    expect(assignNoticePresentationOrder(store, referenceFirstCrypto)).toBe('reference-first');
+    expect(assignNoticePresentationOrder(store, assignedFirstCrypto)).toBe('reference-first');
+    expect(getNoticeSlot('reference-text', 'reference-first')).toBe('A');
+    expect(getNoticeSlot('assigned', 'reference-first')).toBe('B');
+  });
+
+  it('reports and validates required grouped-answer progress', () => {
     const contextStep = studySteps.find((step) => step.id === 'participant_context');
-    const likertStep = studySteps.find((step) => step.id === 'notice_evaluation');
+    const likertStep = studySteps.find((step) => step.id === 'notice_evaluation_clarity');
 
     expect(contextStep?.kind).toBe('context');
     expect(likertStep?.kind).toBe('likert-group');
@@ -29,6 +63,7 @@ describe('survey logic', () => {
       throw new Error('Expected grouped study steps');
     }
 
+    expect(getStepCompletion(contextStep, { age_range: '18_24' })).toEqual({ completed: 1, total: 4 });
     expect(isStepComplete(contextStep, { age_range: '18_24' })).toBe(false);
     expect(getStepValidationMessage(contextStep, { age_range: '18_24' })).toContain('context');
 
@@ -37,6 +72,7 @@ describe('survey logic', () => {
     );
 
     expect(isStepComplete(contextStep, completeContext)).toBe(true);
+    expect(getStepCompletion(likertStep, { clarity_rating: 3 })).toEqual({ completed: 1, total: 3 });
     expect(isStepComplete(likertStep, { clarity_rating: 3 })).toBe(false);
   });
 
@@ -52,7 +88,7 @@ describe('survey logic', () => {
     expect(isStepComplete(reviewStep, { visual_notice_review: reviewAcknowledgedValue })).toBe(true);
   });
 
-  it('builds a payload that records the shown notice and design variant', () => {
+  it('records the visual treatment, presentation order, and assigned slot', () => {
     const variant = noticeVariants.find((noticeVariant) => noticeVariant.id === 'transparency-flow');
     expect(variant).toBeTruthy();
 
@@ -75,17 +111,23 @@ describe('survey logic', () => {
         ease_of_use_rating: 4
       },
       variant,
+      noticeOrder: 'reference-first',
       startedAt: '2026-06-30T00:00:00.000Z',
       completedAt: '2026-06-30T00:02:00.000Z',
       userAgent: 'vitest'
     });
 
     expect(payload.variant_id).toBe('transparency-flow');
-    expect(payload.metadata.shown_notice_variant).toMatchObject({
-      notice_variant_id: 'transparency-flow',
-      notice_format: 'visual_transparency_flow',
-      visual_design_variant_id: 'data-journey-v2',
-      assignment_method: 'session-randomized-fixed'
+    expect(payload.metadata).toMatchObject({
+      survey_flow_version: 'privacy-notice-comparison-v3',
+      notice_presentation_order: 'reference-first',
+      assigned_notice_slot: 'B',
+      shown_notice_variant: {
+        notice_variant_id: 'transparency-flow',
+        notice_format: 'visual_transparency_flow',
+        visual_design_variant_id: 'data-journey-v3',
+        assignment_method: 'session-randomized-fixed'
+      }
     });
   });
 });

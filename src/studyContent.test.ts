@@ -1,15 +1,39 @@
 import { describe, expect, it } from 'vitest';
-import { noticeVariants, studySteps } from './studyContent';
+import { buildStudySteps, noticeVariants } from './studyContent';
+
+const assignedFirstSteps = buildStudySteps('assigned-first');
+const referenceFirstSteps = buildStudySteps('reference-first');
 
 describe('study content', () => {
-  it('uses stable unique step ids', () => {
-    const ids = studySteps.map((step) => step.id);
+  it.each([
+    ['assigned-first', assignedFirstSteps],
+    ['reference-first', referenceFirstSteps]
+  ])('uses stable unique step ids for %s order', (_order, steps) => {
+    const ids = steps.map((step) => step.id);
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids).toEqual(ids.map((id) => id.trim()));
+    expect(steps).toHaveLength(10);
+  });
+
+  it('counterbalances only the two notice review steps', () => {
+    const assignedFirstNoticeSteps = assignedFirstSteps.filter((step) => step.kind === 'notice-review');
+    const referenceFirstNoticeSteps = referenceFirstSteps.filter((step) => step.kind === 'notice-review');
+
+    expect(assignedFirstNoticeSteps.map((step) => [step.noticeSurface, step.eyebrow])).toEqual([
+      ['assigned', 'Notice A'],
+      ['reference-text', 'Notice B']
+    ]);
+    expect(referenceFirstNoticeSteps.map((step) => [step.noticeSurface, step.eyebrow])).toEqual([
+      ['reference-text', 'Notice A'],
+      ['assigned', 'Notice B']
+    ]);
+    expect(referenceFirstSteps.filter((step) => step.kind !== 'notice-review').map((step) => step.id)).toEqual(
+      assignedFirstSteps.filter((step) => step.kind !== 'notice-review').map((step) => step.id)
+    );
   });
 
   it('keeps required choice steps answerable', () => {
-    for (const step of studySteps) {
+    for (const step of assignedFirstSteps) {
       if (step.kind === 'single' && step.required) {
         expect(step.choices.length).toBeGreaterThan(1);
       }
@@ -32,37 +56,40 @@ describe('study content', () => {
     }
   });
 
-  it('keeps the rating set focused on distinct outcomes', () => {
-    const ratingStep = studySteps.find((step) => step.id === 'notice_evaluation');
+  it('splits five rating outcomes into focused three- and two-item steps', () => {
+    const ratingSteps = assignedFirstSteps.filter((step) => step.kind === 'likert-group');
 
-    if (!ratingStep || ratingStep.kind !== 'likert-group') {
-      throw new Error('Notice evaluation must be a Likert group');
-    }
-
-    expect(ratingStep.questions.map((question) => question.id)).toEqual([
-      'clarity_rating',
-      'trust_rating',
-      'confidence_rating',
-      'completeness_rating',
-      'ease_of_use_rating'
+    expect(ratingSteps.map((step) => [step.id, step.questions.map((question) => question.id)])).toEqual([
+      [
+        'notice_evaluation_clarity',
+        ['clarity_rating', 'trust_rating', 'confidence_rating']
+      ],
+      [
+        'notice_evaluation_decision',
+        ['completeness_rating', 'ease_of_use_rating']
+      ]
     ]);
   });
 
-  it('defines fixed notice variants with recorded design metadata', () => {
+  it('defines fixed notice variants with recorded v3 design metadata', () => {
     expect(noticeVariants).toHaveLength(3);
 
     const ids = noticeVariants.map((variant) => variant.id);
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids).toEqual(['plain-text-control', 'trust-cue-summary', 'transparency-flow']);
     expect(noticeVariants.map((variant) => variant.visualDesignVariantId)).toEqual([
-      'disclosure-ledger-v2',
-      'privacy-controls-v2',
-      'data-journey-v2'
+      'disclosure-ledger-v3',
+      'privacy-controls-v3',
+      'data-journey-v3'
     ]);
+    expect(noticeVariants.map((variant) => variant.treatmentItems)).toEqual([
+      noticeVariants[0].treatmentItems,
+      noticeVariants[0].treatmentItems,
+      noticeVariants[0].treatmentItems
+    ]);
+    expect(noticeVariants[0].treatmentItems).toHaveLength(3);
 
     for (const variant of noticeVariants) {
-      expect(variant.format).toBeTruthy();
-      expect(variant.visualDesignVariantId).toBeTruthy();
       expect(variant.designAttributes).toMatchObject({
         colorway: expect.any(String),
         iconStyle: expect.any(String),

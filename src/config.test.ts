@@ -37,6 +37,17 @@ describe('public runtime configuration', () => {
     ).toThrow('Live collection requires VITE_PUBLIC_API_BASE_URL.');
   });
 
+  it('keeps pre-v1 release tags non-collecting', () => {
+    expect(() =>
+      createPublicRuntimeConfig({
+        ...baseEnv,
+        VITE_PUBLIC_API_BASE_URL: 'https://api.example.test',
+        VITE_PUBLIC_COLLECTION_MODE: 'live',
+        VITE_PUBLIC_RELEASE_REF: 'v0.4.0'
+      })
+    ).toThrow('Live collection is not allowed before v1.0.0.');
+  });
+
   it('accepts an explicit live configuration with deployment identity', () => {
     expect(
       createPublicRuntimeConfig({

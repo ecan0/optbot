@@ -17,8 +17,10 @@ type SurveyFrameProps = {
   titleId: string;
   error: string | null;
   canGoBack: boolean;
-  isLastStep: boolean;
+  canAdvance: boolean;
   isSubmitting: boolean;
+  incompleteMessage: string | null;
+  primaryActionLabel: string;
   onBack: () => void;
   onNext: () => void;
 };
@@ -43,8 +45,10 @@ export function SurveyFrame({
   titleId,
   error,
   canGoBack,
-  isLastStep,
+  canAdvance,
   isSubmitting,
+  incompleteMessage,
+  primaryActionLabel,
   onBack,
   onNext
 }: SurveyFrameProps) {
@@ -58,6 +62,10 @@ export function SurveyFrame({
 
   useGSAP(
     () => {
+      if (currentStep === 1) {
+        return;
+      }
+
       const media = gsap.matchMedia();
 
       media.add('(prefers-reduced-motion: no-preference)', () => {
@@ -73,7 +81,7 @@ export function SurveyFrame({
 
       return () => media.revert();
     },
-    { dependencies: [stepId], revertOnUpdate: true, scope: stepRegionRef }
+    { dependencies: [currentStep, stepId], revertOnUpdate: true, scope: stepRegionRef }
   );
 
   return (
@@ -93,9 +101,10 @@ export function SurveyFrame({
           <div className="preview-meta" role="status">
             <span>
               <i aria-hidden="true" />
-              Preview · responses not stored
+              {publicRuntimeConfig.releaseRef === 'local' ? 'Local preview' : 'Live site'}
             </span>
-            <code title={`Preview build ${buildLabel}`}>{buildLabel}</code>
+            <small>Responses are not stored</small>
+            <code title={`Build ${buildLabel}`}>{buildLabel}</code>
           </div>
         ) : null}
       </header>
@@ -134,6 +143,12 @@ export function SurveyFrame({
             </p>
           ) : null}
 
+          {incompleteMessage ? (
+            <p className="completion-status" id="step-completion-status" role="status">
+              {incompleteMessage}
+            </p>
+          ) : null}
+
           <div className="actions-row">
             <button
               aria-label="Go back"
@@ -145,8 +160,14 @@ export function SurveyFrame({
             >
               <ChevronLeft aria-hidden="true" size={22} />
             </button>
-            <button className="primary-action" disabled={isSubmitting} onClick={onNext} type="button">
-              {isSubmitting ? 'Submitting…' : isLastStep ? 'Submit' : 'Continue'}
+            <button
+              aria-describedby={incompleteMessage ? 'step-completion-status' : undefined}
+              className="primary-action"
+              disabled={!canAdvance || isSubmitting}
+              onClick={onNext}
+              type="button"
+            >
+              {isSubmitting ? 'Submitting…' : primaryActionLabel}
             </button>
           </div>
         </section>
