@@ -53,6 +53,17 @@ jobs:
               echo "Production deploys must use an immutable SemVer tag such as v0.1.0."
               exit 1
             fi
+            release_major="${{ inputs.release_ref }}"
+            release_major="${release_major#v}"
+            release_major="${release_major%%.*}"
+            if [ "$release_major" -lt 1 ] && [ "$VITE_PUBLIC_COLLECTION_MODE" = "live" ]; then
+              echo "Pre-v1 production releases are live-site previews and must not collect responses."
+              exit 1
+            fi
+            if [ "$release_major" -ge 1 ] && [ "$VITE_PUBLIC_COLLECTION_MODE" != "live" ]; then
+              echo "v1.0.0 and later production releases must enable public response collection."
+              exit 1
+            fi
             if [ -z "$VITE_PUBLIC_SITE_URL" ]; then
               echo "VITE_PUBLIC_SITE_URL=https://optbot.study" >> "$GITHUB_ENV"
               VITE_PUBLIC_SITE_URL="https://optbot.study"

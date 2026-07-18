@@ -75,9 +75,9 @@ For `dev`, `VITE_PUBLIC_SITE_URL` must not be `https://optbot.study`. Use a dev 
 7. Run the manual static deploy workflow for the tag after infrastructure exists.
 8. Point `optbot.study` at the CloudFront distribution after the certificate and alias are ready.
 
-For survey iteration before cutover, run the manual static deploy workflow against the `dev` environment with the survey branch as `release_ref`. Promote to production only after the changes have merged to `main` and been tagged.
+For survey iteration before public launch, production SemVer tags below `v1.0.0` deploy to `optbot.study` as non-collecting live-site previews. The deploy workflow requires `VITE_PUBLIC_COLLECTION_MODE=preview` for these tags.
 
-The deploy workflow also injects the checked-out release ref and commit SHA into the frontend build. Preview mode remains non-collecting even when an API URL is present.
+The `v1.0.0` tag starts the public survey lifecycle. Production deploys at `v1.0.0` and later require `VITE_PUBLIC_COLLECTION_MODE=live` plus a configured response API. The workflow also injects the checked-out release ref and commit SHA into the frontend build.
 
 ## Cost Guardrails
 

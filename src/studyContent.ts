@@ -1,6 +1,14 @@
-import type { LikertScaleChoice, NoticeSection, NoticeVariant, StudyStep } from './types';
+import type {
+  LikertScaleChoice,
+  NoticePresentationOrder,
+  NoticeReviewStep,
+  NoticeSection,
+  NoticeTreatmentItem,
+  NoticeVariant,
+  StudyStep
+} from './types';
 
-export const surveyFlowVersion = 'privacy-notice-comparison-v2';
+export const surveyFlowVersion = 'privacy-notice-comparison-v3';
 export const consentVersion = 'ai-training-consent-v1';
 
 export const likertScale: LikertScaleChoice[] = [
@@ -42,12 +50,30 @@ export const referenceNoticeSections: NoticeSection[] = [
   }
 ];
 
+const sharedTreatmentItems: NoticeTreatmentItem[] = [
+  {
+    label: 'Optional AI interactions may be shared',
+    detail: 'Prompts, uploads, feedback, and interactions may be used to improve future AI systems.',
+    icon: 'lock'
+  },
+  {
+    label: 'Personal details separated where possible',
+    detail: 'Identifying details are removed or separated where possible before training or evaluation.',
+    icon: 'user-check'
+  },
+  {
+    label: 'Participation and deletion controls',
+    detail: 'Participation is voluntary, with decline and deletion controls where the service provides them.',
+    icon: 'trash'
+  }
+];
+
 export const noticeVariants: NoticeVariant[] = [
   {
     id: 'plain-text-control',
     label: 'Plain text consent notice',
     format: 'plain_text',
-    visualDesignVariantId: 'disclosure-ledger-v2',
+    visualDesignVariantId: 'disclosure-ledger-v3',
     designAttributes: {
       colorway: 'charcoal, ivory, and cool gray',
       iconStyle: 'none',
@@ -57,13 +83,14 @@ export const noticeVariants: NoticeVariant[] = [
     },
     headline: 'Data sharing for AI improvement',
     summary:
-      'A traditional consent notice with the same information presented mostly as paragraphs and section headings.'
+      'A traditional consent notice with the same information presented mostly as paragraphs and section headings.',
+    treatmentItems: sharedTreatmentItems
   },
   {
     id: 'trust-cue-summary',
     label: 'Privacy cue summary',
     format: 'visual_trust_cues',
-    visualDesignVariantId: 'privacy-controls-v2',
+    visualDesignVariantId: 'privacy-controls-v3',
     designAttributes: {
       colorway: 'charcoal, ivory, and periwinkle',
       iconStyle: 'monoline control symbols',
@@ -73,20 +100,14 @@ export const noticeVariants: NoticeVariant[] = [
     },
     headline: 'Your privacy controls at a glance',
     summary:
-      'A benefit-style notice that uses icons, badges, and short summary rows to highlight privacy protections.',
-    badges: [
-      { label: 'Encrypted', detail: 'Protected while stored or transferred.', icon: 'lock' },
-      { label: 'Personal details removed', detail: 'Identifying details are separated where possible.', icon: 'user-check' },
-      { label: 'Delete controls', detail: 'Users can look for deletion options.', icon: 'trash' },
-      { label: 'Transparent usage', detail: 'The notice states how shared data is used.', icon: 'file-text' },
-      { label: 'AI training', detail: 'Use is connected to model improvement.', icon: 'sparkles' }
-    ]
+      'A benefit-style notice that uses icons and short summary rows to highlight privacy protections.',
+    treatmentItems: sharedTreatmentItems
   },
   {
     id: 'transparency-flow',
     label: 'Transparency flow notice',
     format: 'visual_transparency_flow',
-    visualDesignVariantId: 'data-journey-v2',
+    visualDesignVariantId: 'data-journey-v3',
     designAttributes: {
       colorway: 'charcoal, ivory, periwinkle, and amber',
       iconStyle: 'numbered pathway markers',
@@ -96,18 +117,12 @@ export const noticeVariants: NoticeVariant[] = [
     },
     headline: 'See where shared data goes',
     summary:
-      'A transparency-focused notice that shows the path from user content to privacy review to model improvement.',
-    flow: [
-      { label: 'User content shared', detail: 'Prompts, uploads, feedback, and interactions enter the improvement process.' },
-      { label: 'Personal information separated', detail: 'Identifying details are removed or separated where possible.' },
-      { label: 'Training dataset prepared', detail: 'Reviewed content is grouped with other data for model improvement.' },
-      { label: 'AI systems improved', detail: 'The information helps improve quality, safety, and reliability.' },
-      { label: 'Controls remain available', detail: 'The notice points users toward opt-out and deletion controls.' }
-    ]
+      'A transparency-focused notice that shows the same decisions as a numbered pathway.',
+    treatmentItems: sharedTreatmentItems
   }
 ];
 
-export const studySteps: StudyStep[] = [
+const studySteps: StudyStep[] = [
   {
     id: 'study_intro',
     eyebrow: 'Welcome',
@@ -197,7 +212,7 @@ export const studySteps: StudyStep[] = [
     eyebrow: 'Review Task',
     title: 'Compare the notice like a benefits plan summary.',
     prompt:
-      'You will review one assigned privacy notice presentation and then a standard text version with the same intent. Pay attention to clarity, trust, completeness, and ease of use.',
+      'You will review one assigned privacy notice presentation and one standard text version with the same intent. Their order is set for this session. Pay attention to clarity, trust, completeness, and ease of use.',
     kind: 'instructions',
     callouts: [
       { label: 'Look for data use', detail: 'What information may be shared and why it may be used.' },
@@ -238,12 +253,12 @@ export const studySteps: StudyStep[] = [
       {
         id: 'prefer_assigned_notice',
         label: 'The assigned notice presentation',
-        detail: 'The first notice format helped me decide.'
+        detail: 'The assigned visual treatment helped me decide.'
       },
       {
         id: 'prefer_text_notice',
         label: 'The text notice',
-        detail: 'The written notice helped me decide.'
+        detail: 'The reference text helped me decide.'
       },
       {
         id: 'prefer_both_together',
@@ -258,10 +273,10 @@ export const studySteps: StudyStep[] = [
     ]
   },
   {
-    id: 'notice_evaluation',
-    eyebrow: 'Follow-Up Ratings',
-    title: 'Rate the notice experience.',
-    prompt: 'Use a 1-5 scale for each statement or question.',
+    id: 'notice_evaluation_clarity',
+    eyebrow: 'Notice Ratings',
+    title: 'Rate clarity, trust, and confidence.',
+    prompt: 'Use a 1-5 scale for each statement.',
     kind: 'likert-group',
     required: true,
     scale: likertScale,
@@ -283,7 +298,18 @@ export const studySteps: StudyStep[] = [
         label: 'I feel confident I understood what I would be agreeing to.',
         lowLabel: 'Not confident',
         highLabel: 'Very confident'
-      },
+      }
+    ]
+  },
+  {
+    id: 'notice_evaluation_decision',
+    eyebrow: 'Decision Ratings',
+    title: 'Rate completeness and ease of use.',
+    prompt: 'Use the same 1-5 scale for the final two questions.',
+    kind: 'likert-group',
+    required: true,
+    scale: likertScale,
+    questions: [
       {
         id: 'completeness_rating',
         label: 'The notice included enough information for me to make a decision.',
@@ -295,7 +321,7 @@ export const studySteps: StudyStep[] = [
         label: 'The notice was easy to scan and use.',
         lowLabel: 'Difficult',
         highLabel: 'Easy'
-      },
+      }
     ]
   },
   {
@@ -308,13 +334,53 @@ export const studySteps: StudyStep[] = [
       {
         id: 'concerns_influenced_decision',
         label: 'What concerns influenced your decision?',
-        placeholder: 'For example: data misuse, surveillance, unclear deletion, or ownership concerns.'
+        placeholder: 'For example: data misuse, surveillance, unclear deletion, or ownership concerns…'
       },
       {
         id: 'information_increase_trust',
         label: 'What information would make you more willing to participate?',
-        placeholder: 'For example: clearer deletion controls, examples of data use, or proof of anonymization.'
+        placeholder: 'For example: clearer deletion controls, examples of data use, or proof of anonymization…'
       }
     ]
   }
 ];
+
+function configureNoticeStep(
+  step: NoticeReviewStep,
+  slot: 'A' | 'B',
+  isFirst: boolean
+): NoticeReviewStep {
+  const isAssigned = step.noticeSurface === 'assigned';
+  const presentation = isAssigned ? 'assigned visual presentation' : 'reference text presentation';
+
+  return {
+    ...step,
+    eyebrow: `Notice ${slot}`,
+    title: isFirst
+      ? `Review privacy notice ${slot}${isAssigned ? '' : ' as text'}.`
+      : `Now review privacy notice ${slot}${isAssigned ? '' : ' as text'}.`,
+    prompt: `This is the ${presentation}. Its Notice ${slot} identity remains the same through the comparison and preference question.`,
+    acknowledgementLabel: `I reviewed notice ${slot}`
+  };
+}
+
+export function buildStudySteps(order: NoticePresentationOrder): StudyStep[] {
+  const assignedIndex = studySteps.findIndex(
+    (step) => step.kind === 'notice-review' && step.noticeSurface === 'assigned'
+  );
+  const referenceIndex = studySteps.findIndex(
+    (step) => step.kind === 'notice-review' && step.noticeSurface === 'reference-text'
+  );
+  const assignedStep = studySteps[assignedIndex] as NoticeReviewStep;
+  const referenceStep = studySteps[referenceIndex] as NoticeReviewStep;
+  const orderedNoticeSteps =
+    order === 'assigned-first'
+      ? [configureNoticeStep(assignedStep, 'A', true), configureNoticeStep(referenceStep, 'B', false)]
+      : [configureNoticeStep(referenceStep, 'A', true), configureNoticeStep(assignedStep, 'B', false)];
+
+  return [
+    ...studySteps.slice(0, assignedIndex),
+    ...orderedNoticeSteps,
+    ...studySteps.slice(referenceIndex + 1)
+  ];
+}

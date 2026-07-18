@@ -1,20 +1,23 @@
-import { CheckCircle2 } from 'lucide-react';
-import { reviewAcknowledgedValue, getChoiceAnswerValue } from '../surveyLogic';
+import type { ReactNode } from 'react';
+import { getNoticeSlot, getStepCompletion, reviewAcknowledgedValue, getChoiceAnswerValue } from '../surveyLogic';
 import type {
   AnswerValue,
   Choice,
   ChoiceQuestion,
   NoticeReviewStep,
+  NoticePresentationOrder,
+  NoticeSurface,
   NoticeVariant,
   StudyStep,
   SurveyAnswers
 } from '../types';
-import { NoticePresentation } from './NoticePresentation';
+import { NoticeIdentityBadge, NoticePresentation } from './NoticePresentation';
 
 type StepRendererProps = {
   step: StudyStep;
   answers: SurveyAnswers;
   assignedVariant: NoticeVariant;
+  noticeOrder: NoticePresentationOrder;
   onAnswer: (answerId: string, value: AnswerValue) => void;
 };
 
@@ -24,10 +27,12 @@ function isSelected(answer: AnswerValue | undefined, choice: Choice): boolean {
 
 function ChoiceButton({
   choice,
+  identity,
   selected,
   onSelect
 }: {
   choice: Choice;
+  identity?: ReactNode;
   selected: boolean;
   onSelect: () => void;
 }) {
@@ -38,6 +43,7 @@ function ChoiceButton({
       type="button"
       onClick={onSelect}
     >
+      {identity}
       <span className="choice-title">{choice.label}</span>
       {choice.detail ? <span className="choice-detail">{choice.detail}</span> : null}
     </button>
@@ -75,32 +81,38 @@ function NoticeReview({
   step,
   answers,
   assignedVariant,
+  noticeOrder,
   onAnswer
 }: {
   step: NoticeReviewStep;
   answers: SurveyAnswers;
   assignedVariant: NoticeVariant;
+  noticeOrder: NoticePresentationOrder;
   onAnswer: (answerId: string, value: AnswerValue) => void;
 }) {
   const reviewed = answers[step.id] === reviewAcknowledgedValue;
 
   return (
     <div className="notice-review-stack">
-      <NoticePresentation variant={assignedVariant} surface={step.noticeSurface} />
+      <NoticePresentation noticeOrder={noticeOrder} variant={assignedVariant} surface={step.noticeSurface} />
       <button
         className={reviewed ? 'review-confirm selected' : 'review-confirm'}
         type="button"
         onClick={() => onAnswer(step.id, reviewAcknowledgedValue)}
         aria-pressed={reviewed}
       >
-        <CheckCircle2 aria-hidden="true" size={18} />
-        {reviewed ? 'Notice reviewed' : step.acknowledgementLabel}
+        <NoticeIdentityBadge
+          slot={getNoticeSlot(step.noticeSurface, noticeOrder)}
+          surface={step.noticeSurface}
+          variant={assignedVariant}
+        />
+        <span>{reviewed ? `Notice ${getNoticeSlot(step.noticeSurface, noticeOrder)} reviewed` : step.acknowledgementLabel}</span>
       </button>
     </div>
   );
 }
 
-export function StepRenderer({ step, answers, assignedVariant, onAnswer }: StepRendererProps) {
+export function StepRenderer({ step, answers, assignedVariant, noticeOrder, onAnswer }: StepRendererProps) {
   switch (step.kind) {
     case 'intro':
       return (
@@ -113,27 +125,60 @@ export function StepRenderer({ step, answers, assignedVariant, onAnswer }: StepR
           ))}
         </dl>
       );
-    case 'single':
+    case 'single': {
       return (
         <div className="choice-grid">
-          {step.choices.map((choice) => (
-            <ChoiceButton
-              choice={choice}
-              key={choice.id}
-              selected={isSelected(answers[step.id], choice)}
-              onSelect={() => onAnswer(step.id, getChoiceAnswerValue(choice))}
-            />
-          ))}
+          {step.choices.map((choice) => {
+            const preferenceSurfaces: NoticeSurface[] =
+              step.id !== 'presentation_preference'
+                ? []
+                : choice.id === 'prefer_assigned_notice'
+                  ? ['assigned']
+                  : choice.id === 'prefer_text_notice'
+                    ? ['reference-text']
+                    : choice.id === 'prefer_both_together'
+                      ? ['assigned', 'reference-text']
+                      : [];
+
+            return (
+              <ChoiceButton
+                choice={choice}
+                identity={
+                  preferenceSurfaces.length > 0 ? (
+                    <span className="choice-identities">
+                      {preferenceSurfaces.map((surface) => (
+                        <NoticeIdentityBadge
+                          key={surface}
+                          slot={getNoticeSlot(surface, noticeOrder)}
+                          surface={surface}
+                          variant={assignedVariant}
+                        />
+                      ))}
+                    </span>
+                  ) : undefined
+                }
+                key={choice.id}
+                selected={isSelected(answers[step.id], choice)}
+                onSelect={() => onAnswer(step.id, getChoiceAnswerValue(choice))}
+              />
+            );
+          })}
         </div>
       );
-    case 'context':
+    }
+    case 'context': {
+      const completion = getStepCompletion(step, answers);
       return (
         <div className="question-stack">
+          <p className="within-step-status" aria-live="polite">
+            {completion.completed} of {completion.total} questions answered
+          </p>
           {step.questions.map((question) => (
             <ChoiceQuestionGroup key={question.id} question={question} answers={answers} onAnswer={onAnswer} />
           ))}
         </div>
       );
+    }
     case 'instructions':
       return (
         <ol className="instruction-grid">
@@ -147,10 +192,14 @@ export function StepRenderer({ step, answers, assignedVariant, onAnswer }: StepR
         </ol>
       );
     case 'notice-review':
-      return <NoticeReview step={step} answers={answers} assignedVariant={assignedVariant} onAnswer={onAnswer} />;
-    case 'likert-group':
+      return <NoticeReview step={step} answers={answers} assignedVariant={assignedVariant} noticeOrder={noticeOrder} onAnswer={onAnswer} />;
+    case 'likert-group': {
+      const completion = getStepCompletion(step, answers);
       return (
         <div className="likert-stack">
+          <p className="within-step-status" aria-live="polite">
+            {completion.completed} of {completion.total} ratings answered
+          </p>
           {step.questions.map((question) => (
             <fieldset className="likert-row" key={question.id}>
               <legend>{question.label}</legend>
@@ -176,6 +225,7 @@ export function StepRenderer({ step, answers, assignedVariant, onAnswer }: StepR
           ))}
         </div>
       );
+    }
     case 'text-group':
       return (
         <div className="text-question-stack">

@@ -74,7 +74,7 @@ export type InstructionsStep = BaseStep & {
 
 export type NoticeReviewStep = BaseStep & {
   kind: 'notice-review';
-  noticeSurface: 'assigned' | 'reference-text';
+  noticeSurface: NoticeSurface;
   acknowledgementLabel: string;
 };
 
@@ -98,11 +98,15 @@ export type StudyStep =
   | LikertGroupStep
   | TextGroupStep;
 
+export type NoticeSurface = 'assigned' | 'reference-text';
+export type NoticePresentationOrder = 'assigned-first' | 'reference-first';
+export type NoticeSlot = 'A' | 'B';
+
 export type NoticeVariantId = 'plain-text-control' | 'trust-cue-summary' | 'transparency-flow';
 
 export type NoticeFormat = 'plain_text' | 'visual_trust_cues' | 'visual_transparency_flow';
 
-export type VisualDesignVariantId = 'disclosure-ledger-v2' | 'privacy-controls-v2' | 'data-journey-v2';
+export type VisualDesignVariantId = 'disclosure-ledger-v3' | 'privacy-controls-v3' | 'data-journey-v3';
 
 export type VisualDesignAttributes = {
   colorway: string;
@@ -119,15 +123,10 @@ export type NoticeSection = {
   icon: 'database' | 'shield' | 'user-check' | 'trash' | 'sparkles' | 'file-text';
 };
 
-export type NoticeBadge = {
+export type NoticeTreatmentItem = {
   label: string;
   detail: string;
-  icon: 'lock' | 'user-check' | 'trash' | 'file-text' | 'sparkles';
-};
-
-export type NoticeFlowStep = {
-  label: string;
-  detail: string;
+  icon: 'lock' | 'user-check' | 'trash';
 };
 
 export type NoticeVariant = {
@@ -138,8 +137,7 @@ export type NoticeVariant = {
   designAttributes: VisualDesignAttributes;
   headline: string;
   summary: string;
-  badges?: NoticeBadge[];
-  flow?: NoticeFlowStep[];
+  treatmentItems: NoticeTreatmentItem[];
 };
 
 export type ParticipantMetadata = {
@@ -147,6 +145,8 @@ export type ParticipantMetadata = {
   started_at: string;
   completed_at: string;
   user_agent?: string;
+  notice_presentation_order: NoticePresentationOrder;
+  assigned_notice_slot: NoticeSlot;
   shown_notice_variant: {
     notice_variant_id: NoticeVariantId;
     notice_variant_label: string;

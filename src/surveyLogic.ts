@@ -1,8 +1,17 @@
 import type { ResponsePayload } from './schema';
 import { noticeVariants, surveyFlowVersion } from './studyContent';
-import type { AnswerValue, NoticeVariant, NoticeVariantId, StudyStep, SurveyAnswers } from './types';
+import type {
+  AnswerValue,
+  NoticePresentationOrder,
+  NoticeSlot,
+  NoticeSurface,
+  NoticeVariant,
+  StudyStep,
+  SurveyAnswers
+} from './types';
 
 export const noticeVariantStorageKey = 'optbot_notice_variant';
+export const noticeOrderStorageKey = 'optbot_notice_order';
 export const reviewAcknowledgedValue = 'reviewed';
 
 type VariantStore = Pick<Storage, 'getItem' | 'setItem'>;
@@ -30,6 +39,76 @@ export function assignNoticeVariant(store: VariantStore, cryptoSource: CryptoSou
   return variant;
 }
 
+export function assignNoticePresentationOrder(
+  store: VariantStore,
+  cryptoSource: CryptoSource
+): NoticePresentationOrder {
+  const storedOrder = store.getItem(noticeOrderStorageKey);
+  if (storedOrder === 'assigned-first' || storedOrder === 'reference-first') {
+    return storedOrder;
+  }
+
+  const randomValues = new Uint32Array(1);
+  cryptoSource.getRandomValues(randomValues);
+  const order = randomValues[0] % 2 === 0 ? 'assigned-first' : 'reference-first';
+  store.setItem(noticeOrderStorageKey, order);
+  return order;
+}
+
+export function getNoticeSlot(
+  surface: NoticeSurface,
+  order: NoticePresentationOrder
+): NoticeSlot {
+  const assignedIsFirst = order === 'assigned-first';
+  return surface === 'assigned' === assignedIsFirst ? 'A' : 'B';
+}
+
+export function getStepCompletion(
+  step: StudyStep,
+  answers: SurveyAnswers
+): { completed: number; total: number } {
+  if (!step.required) {
+    return { completed: 0, total: 0 };
+  }
+
+  switch (step.kind) {
+    case 'single':
+      return { completed: isAnswerPresent(answers[step.id]) ? 1 : 0, total: 1 };
+    case 'context': {
+      const requiredQuestions = step.questions.filter((question) => question.required);
+      return {
+        completed: requiredQuestions.filter((question) => isAnswerPresent(answers[question.id])).length,
+        total: requiredQuestions.length
+      };
+    }
+    case 'notice-review':
+      return {
+        completed: answers[step.id] === reviewAcknowledgedValue ? 1 : 0,
+        total: 1
+      };
+    case 'likert-group': {
+      const allowedValues = new Set(step.scale.map((choice) => choice.value));
+      return {
+        completed: step.questions.filter((question) => {
+          const answer = answers[question.id];
+          return typeof answer === 'number' && allowedValues.has(answer);
+        }).length,
+        total: step.questions.length
+      };
+    }
+    case 'text-group': {
+      const requiredQuestions = step.questions.filter((question) => question.required);
+      return {
+        completed: requiredQuestions.filter((question) => isAnswerPresent(answers[question.id])).length,
+        total: requiredQuestions.length
+      };
+    }
+    case 'intro':
+    case 'instructions':
+      return { completed: 0, total: 0 };
+  }
+}
+
 export function isAnswerPresent(value: AnswerValue | undefined): boolean {
   return value !== undefined && value !== '';
 }
@@ -43,28 +122,8 @@ export function isStepComplete(step: StudyStep, answers: SurveyAnswers): boolean
     return true;
   }
 
-  switch (step.kind) {
-    case 'single':
-      return isAnswerPresent(answers[step.id]);
-    case 'context':
-      return step.questions.every((question) => !question.required || isAnswerPresent(answers[question.id]));
-    case 'notice-review':
-      return answers[step.id] === reviewAcknowledgedValue;
-    case 'likert-group': {
-      const allowedValues = new Set(step.scale.map((choice) => choice.value));
-      return step.questions.every((question) => {
-        const answer = answers[question.id];
-        return typeof answer === 'number' && allowedValues.has(answer);
-      });
-    }
-    case 'text-group':
-      return step.questions.every((question) => !question.required || isAnswerPresent(answers[question.id]));
-    case 'intro':
-    case 'instructions':
-      return true;
-    default:
-      return true;
-  }
+  const completion = getStepCompletion(step, answers);
+  return completion.completed === completion.total;
 }
 
 export function getStepValidationMessage(step: StudyStep, answers: SurveyAnswers): string | null {
@@ -102,13 +161,14 @@ export function buildResponsePayload(args: {
   consentVersion: string;
   answers: SurveyAnswers;
   variant: NoticeVariant;
+  noticeOrder: NoticePresentationOrder;
   startedAt: string;
   completedAt: string;
   userAgent?: string;
 }): ResponsePayload {
   return {
     survey_id: args.surveyId,
-    variant_id: args.variant.id as NoticeVariantId,
+    variant_id: args.variant.id,
     consent_version: args.consentVersion,
     answers: args.answers,
     metadata: {
@@ -116,6 +176,8 @@ export function buildResponsePayload(args: {
       started_at: args.startedAt,
       completed_at: args.completedAt,
       user_agent: args.userAgent,
+      notice_presentation_order: args.noticeOrder,
+      assigned_notice_slot: getNoticeSlot('assigned', args.noticeOrder),
       shown_notice_variant: createShownNoticeVariantMetadata(args.variant)
     }
   };
