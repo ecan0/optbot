@@ -54,9 +54,13 @@ describe('study content', () => {
     const ids = noticeVariants.map((variant) => variant.id);
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids).toEqual(['plain-text-control', 'trust-cue-summary', 'transparency-flow']);
+    expect(noticeVariants.map((variant) => variant.visualDesignVariantId)).toEqual([
+      'disclosure-ledger-v2',
+      'privacy-controls-v2',
+      'data-journey-v2'
+    ]);
 
     for (const variant of noticeVariants) {
-      expect(variant.assetSrc).toBeTruthy();
       expect(variant.format).toBeTruthy();
       expect(variant.visualDesignVariantId).toBeTruthy();
       expect(variant.designAttributes).toMatchObject({

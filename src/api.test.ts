@@ -11,20 +11,20 @@ const validPayload: ResponsePayload = {
     trust_rating: 4
   },
   metadata: {
-    survey_flow_version: 'privacy-notice-comparison-v1',
+    survey_flow_version: 'privacy-notice-comparison-v2',
     started_at: '2026-06-30T00:00:00.000Z',
     completed_at: '2026-06-30T00:02:00.000Z',
     shown_notice_variant: {
       notice_variant_id: 'trust-cue-summary',
       notice_variant_label: 'Privacy cue summary',
       notice_format: 'visual_trust_cues',
-      visual_design_variant_id: 'benefit-badges',
+      visual_design_variant_id: 'privacy-controls-v2',
       visual_design_attributes: {
-        colorway: 'teal, blue, and amber',
-        iconStyle: 'outline privacy badges',
+        colorway: 'charcoal, ivory, and periwinkle',
+        iconStyle: 'monoline control symbols',
         density: 'balanced',
-        sectionEmphasis: 'protections-first',
-        layout: 'benefit-card summary grid'
+        sectionEmphasis: 'protections and participant control',
+        layout: 'stacked privacy commitment rows'
       },
       assignment_method: 'session-randomized-fixed'
     }

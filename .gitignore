@@ -16,6 +16,9 @@ pnpm-debug.log*
 .env.*.local
 !.env.example
 
+# Local design references may contain third-party assets or account data.
+design-references/
+
 # Terraform
 # Commit .terraform.lock.hcl after terraform init; it is not a secret.
 **/.terraform/
