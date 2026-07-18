@@ -1,10 +1,6 @@
-import consentDashboard from './assets/illustrations/consent-dashboard.svg';
-import plainTextNotice from './assets/notices/plain-text-notice.svg';
-import transparencyFlowNotice from './assets/notices/transparency-flow-notice.svg';
-import trustCueNotice from './assets/notices/trust-cue-notice.svg';
 import type { LikertScaleChoice, NoticeSection, NoticeVariant, StudyStep } from './types';
 
-export const surveyFlowVersion = 'privacy-notice-comparison-v1';
+export const surveyFlowVersion = 'privacy-notice-comparison-v2';
 export const consentVersion = 'ai-training-consent-v1';
 
 export const likertScale: LikertScaleChoice[] = [
@@ -51,37 +47,33 @@ export const noticeVariants: NoticeVariant[] = [
     id: 'plain-text-control',
     label: 'Plain text consent notice',
     format: 'plain_text',
-    visualDesignVariantId: 'legal-plain',
+    visualDesignVariantId: 'disclosure-ledger-v2',
     designAttributes: {
-      colorway: 'ink and paper',
+      colorway: 'charcoal, ivory, and cool gray',
       iconStyle: 'none',
       density: 'dense',
-      sectionEmphasis: 'paragraph-first',
-      layout: 'single-column legal notice'
+      sectionEmphasis: 'full disclosure',
+      layout: 'single-column consent ledger'
     },
     headline: 'Data sharing for AI improvement',
     summary:
-      'A traditional consent notice with the same information presented mostly as paragraphs and section headings.',
-    assetAlt: 'Plain text notice preview',
-    assetSrc: plainTextNotice
+      'A traditional consent notice with the same information presented mostly as paragraphs and section headings.'
   },
   {
     id: 'trust-cue-summary',
     label: 'Privacy cue summary',
     format: 'visual_trust_cues',
-    visualDesignVariantId: 'benefit-badges',
+    visualDesignVariantId: 'privacy-controls-v2',
     designAttributes: {
-      colorway: 'teal, blue, and amber',
-      iconStyle: 'outline privacy badges',
+      colorway: 'charcoal, ivory, and periwinkle',
+      iconStyle: 'monoline control symbols',
       density: 'balanced',
-      sectionEmphasis: 'protections-first',
-      layout: 'benefit-card summary grid'
+      sectionEmphasis: 'protections and participant control',
+      layout: 'stacked privacy commitment rows'
     },
     headline: 'Your privacy controls at a glance',
     summary:
       'A benefit-style notice that uses icons, badges, and short summary rows to highlight privacy protections.',
-    assetAlt: 'Privacy badge notice preview',
-    assetSrc: trustCueNotice,
     badges: [
       { label: 'Encrypted', detail: 'Protected while stored or transferred.', icon: 'lock' },
       { label: 'Personal details removed', detail: 'Identifying details are separated where possible.', icon: 'user-check' },
@@ -94,19 +86,17 @@ export const noticeVariants: NoticeVariant[] = [
     id: 'transparency-flow',
     label: 'Transparency flow notice',
     format: 'visual_transparency_flow',
-    visualDesignVariantId: 'data-flow-timeline',
+    visualDesignVariantId: 'data-journey-v2',
     designAttributes: {
-      colorway: 'blue, plum, green, and gold',
-      iconStyle: 'numbered process markers',
+      colorway: 'charcoal, ivory, periwinkle, and amber',
+      iconStyle: 'numbered pathway markers',
       density: 'guided',
-      sectionEmphasis: 'data journey',
-      layout: 'timeline with checkpoint panels'
+      sectionEmphasis: 'data journey and decision points',
+      layout: 'vertical data-use pathway'
     },
     headline: 'See where shared data goes',
     summary:
       'A transparency-focused notice that shows the path from user content to privacy review to model improvement.',
-    assetAlt: 'Transparency flow notice preview',
-    assetSrc: transparencyFlowNotice,
     flow: [
       { label: 'User content shared', detail: 'Prompts, uploads, feedback, and interactions enter the improvement process.' },
       { label: 'Personal information separated', detail: 'Identifying details are removed or separated where possible.' },
@@ -125,7 +115,6 @@ export const studySteps: StudyStep[] = [
     prompt:
       'This short study asks how different privacy notice presentations affect trust and understanding when deciding whether to share data for AI training.',
     kind: 'intro',
-    illustrationAsset: consentDashboard,
     highlights: [
       { label: 'Focus', value: 'AI consent notices' },
       { label: 'Time', value: 'About 4-6 minutes' },

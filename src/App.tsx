@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { submitResponse, type SubmitResult } from './api';
 import { CompletionScreen } from './components/CompletionScreen';
 import { StepRenderer } from './components/StepRenderer';
@@ -30,10 +30,20 @@ function App() {
   const isLastStep = stepIndex === studySteps.length - 1;
   const participationDeclined = isConsentDenied(answers);
 
+  useEffect(() => {
+    if (stepIndex === 0) {
+      return;
+    }
+
+    const focusTimer = window.setTimeout(() => document.getElementById('step-title')?.focus(), 0);
+    return () => window.clearTimeout(focusTimer);
+  }, [stepIndex]);
+
   function setAnswer(answerId: string, value: AnswerValue) {
     setAnswers((existing) => ({ ...existing, [answerId]: value }));
     setError(null);
   }
+
 
   function createPayload(completedAt = new Date().toISOString()) {
     return buildResponsePayload({
@@ -111,19 +121,23 @@ function App() {
       onBack={() => setStepIndex((index) => Math.max(index - 1, 0))}
       onNext={handleNext}
       progress={progress}
+      stepId={step.id}
+      stepKind={step.kind}
       titleId="step-title"
       totalSteps={studySteps.length}
     >
-      <p className="eyebrow">{step.eyebrow}</p>
-      <h1 id="step-title">{step.title}</h1>
+      <p className="step-label">{step.eyebrow}</p>
+      <h1 id="step-title" tabIndex={-1}>{step.title}</h1>
       <p className="prompt">{step.prompt}</p>
-      <StepRenderer
-        answers={answers}
-        assignedVariant={assignedVariant}
-        onAnswer={setAnswer}
-        step={step}
-      />
-      {!isStepComplete(step, answers) && step.required ? <p className="required-note">Required</p> : null}
+      <div data-step-body key={step.id}>
+        <StepRenderer
+          answers={answers}
+          assignedVariant={assignedVariant}
+          onAnswer={setAnswer}
+          step={step}
+        />
+        {!isStepComplete(step, answers) && step.required ? <p className="required-note">Required</p> : null}
+      </div>
     </SurveyFrame>
   );
 }

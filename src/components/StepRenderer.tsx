@@ -93,7 +93,7 @@ function NoticeReview({
         onClick={() => onAnswer(step.id, reviewAcknowledgedValue)}
         aria-pressed={reviewed}
       >
-        <CheckCircle2 size={18} />
+        <CheckCircle2 aria-hidden="true" size={18} />
         {reviewed ? 'Notice reviewed' : step.acknowledgementLabel}
       </button>
     </div>
@@ -104,19 +104,14 @@ export function StepRenderer({ step, answers, assignedVariant, onAnswer }: StepR
   switch (step.kind) {
     case 'intro':
       return (
-        <div className="intro-grid">
-          <div className="intro-copy">
-            <div className="summary-row-grid">
-              {step.highlights.map((highlight) => (
-                <div className="summary-row" key={highlight.label}>
-                  <span>{highlight.label}</span>
-                  <strong>{highlight.value}</strong>
-                </div>
-              ))}
+        <dl className="summary-row-grid">
+          {step.highlights.map((highlight) => (
+            <div className="summary-row" key={highlight.label}>
+              <dt>{highlight.label}</dt>
+              <dd>{highlight.value}</dd>
             </div>
-          </div>
-          <img className="intro-illustration" src={step.illustrationAsset} alt="" aria-hidden="true" />
-        </div>
+          ))}
+        </dl>
       );
     case 'single':
       return (
@@ -141,14 +136,15 @@ export function StepRenderer({ step, answers, assignedVariant, onAnswer }: StepR
       );
     case 'instructions':
       return (
-        <div className="instruction-grid">
-          {step.callouts.map((callout) => (
-            <div className="instruction-item" key={callout.label}>
+        <ol className="instruction-grid">
+          {step.callouts.map((callout, index) => (
+            <li className="instruction-item" key={callout.label}>
+              <span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
               <strong>{callout.label}</strong>
-              <span>{callout.detail}</span>
-            </div>
+              <small>{callout.detail}</small>
+            </li>
           ))}
-        </div>
+        </ol>
       );
     case 'notice-review':
       return <NoticeReview step={step} answers={answers} assignedVariant={assignedVariant} onAnswer={onAnswer} />;
@@ -188,6 +184,8 @@ export function StepRenderer({ step, answers, assignedVariant, onAnswer }: StepR
               <span>{question.label}</span>
               {question.helperText ? <small>{question.helperText}</small> : null}
               <textarea
+                autoComplete="off"
+                name={question.id}
                 onChange={(event) => onAnswer(question.id, event.target.value)}
                 placeholder={question.placeholder}
                 rows={4}

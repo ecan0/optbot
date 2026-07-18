@@ -1,4 +1,4 @@
-import { CheckCircle2, Download, ShieldCheck } from 'lucide-react';
+import { Check, Download, ShieldCheck } from 'lucide-react';
 import type { SubmitResult } from '../api';
 
 type CompletionScreenProps = {
@@ -12,17 +12,23 @@ export function CompletionScreen({ result, participationDeclined, onDownload }: 
 
   return (
     <main className="page-shell completion-shell">
-      <section className="completion-panel" aria-labelledby="complete-title">
+      <a className="skip-link" href="#complete-title" onClick={(event) => { event.preventDefault(); document.getElementById('complete-title')?.focus(); }}>Skip to completion status</a>
+      <header className="study-header">
         <div className="brand-row">
-          <span className="brand-mark">
-            <ShieldCheck size={22} />
+          <span className="brand-mark" aria-hidden="true">
+            <ShieldCheck size={21} />
           </span>
-          <span>OptBot Study</span>
+          <span className="brand-copy">
+            <strong>OptBot</strong>
+            <small>Privacy notice study</small>
+          </span>
         </div>
+      </header>
+      <section className="completion-panel" aria-labelledby="complete-title">
         <span className="completion-mark" aria-hidden="true">
-          <CheckCircle2 size={28} />
+          <Check size={22} />
         </span>
-        <h1 id="complete-title">{participationDeclined ? 'Participation was not confirmed.' : 'Thanks for reviewing the notices.'}</h1>
+        <h1 id="complete-title" ref={(heading) => heading?.focus()} tabIndex={-1}>{participationDeclined ? 'Participation was not confirmed.' : 'Thanks for reviewing the notices.'}</h1>
         <p>
           {participationDeclined
             ? 'No response was submitted because participation was declined.'
@@ -32,7 +38,7 @@ export function CompletionScreen({ result, participationDeclined, onDownload }: 
         </p>
         {isPreview ? (
           <button className="secondary-action" type="button" onClick={onDownload}>
-            <Download size={18} />
+            <Download aria-hidden="true" size={18} />
             Download preview JSON
           </button>
         ) : null}

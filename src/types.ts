@@ -48,7 +48,6 @@ type BaseStep = {
 
 export type IntroStep = BaseStep & {
   kind: 'intro';
-  illustrationAsset: string;
   highlights: Array<{
     label: string;
     value: string;
@@ -103,7 +102,7 @@ export type NoticeVariantId = 'plain-text-control' | 'trust-cue-summary' | 'tran
 
 export type NoticeFormat = 'plain_text' | 'visual_trust_cues' | 'visual_transparency_flow';
 
-export type VisualDesignVariantId = 'legal-plain' | 'benefit-badges' | 'data-flow-timeline';
+export type VisualDesignVariantId = 'disclosure-ledger-v2' | 'privacy-controls-v2' | 'data-journey-v2';
 
 export type VisualDesignAttributes = {
   colorway: string;
@@ -139,8 +138,6 @@ export type NoticeVariant = {
   designAttributes: VisualDesignAttributes;
   headline: string;
   summary: string;
-  assetAlt: string;
-  assetSrc: string;
   badges?: NoticeBadge[];
   flow?: NoticeFlowStep[];
 };

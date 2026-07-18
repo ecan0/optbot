@@ -84,7 +84,7 @@ describe('survey logic', () => {
     expect(payload.metadata.shown_notice_variant).toMatchObject({
       notice_variant_id: 'transparency-flow',
       notice_format: 'visual_transparency_flow',
-      visual_design_variant_id: 'data-flow-timeline',
+      visual_design_variant_id: 'data-journey-v2',
       assignment_method: 'session-randomized-fixed'
     });
   });

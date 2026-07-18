@@ -32,47 +32,58 @@ const badgeIcons: Record<NoticeBadge['icon'], typeof Database> = {
   sparkles: Sparkles
 };
 
-function NoticeSectionRow({ section }: { section: NoticeSection }) {
-  const Icon = sectionIcons[section.icon];
-
+function DisclosureSections({ showIcons = false }: { showIcons?: boolean }) {
   return (
-    <li className="notice-section-row">
-      <span className="notice-section-icon" aria-hidden="true">
-        <Icon size={18} />
-      </span>
-      <span>
-        <strong>{section.label}</strong>
-        <span>{section.body}</span>
-      </span>
-    </li>
+    <ul className={showIcons ? 'notice-section-list notice-section-grid' : 'notice-section-list'}>
+      {referenceNoticeSections.map((section) => {
+        const Icon = sectionIcons[section.icon];
+
+        return (
+          <li className="notice-section-row" key={section.id}>
+            {showIcons ? (
+              <span className="notice-section-icon" aria-hidden="true">
+                <Icon size={18} />
+              </span>
+            ) : null}
+            <span>
+              <strong>{section.label}</strong>
+              <span>{section.body}</span>
+            </span>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
-function TrustBadges({ badges }: { badges: NoticeBadge[] }) {
+function PrivacyCommitments({ badges }: { badges: NoticeBadge[] }) {
   return (
-    <div className="badge-grid" aria-label="Privacy trust indicators">
+    <ul className="privacy-commitments" aria-label="Privacy commitments">
       {badges.map((badge) => {
         const Icon = badgeIcons[badge.icon];
+
         return (
-          <div className="notice-badge" key={badge.label}>
+          <li key={badge.label}>
             <span aria-hidden="true">
               <Icon size={18} />
             </span>
-            <strong>{badge.label}</strong>
-            <small>{badge.detail}</small>
-          </div>
+            <span>
+              <strong>{badge.label}</strong>
+              <small>{badge.detail}</small>
+            </span>
+          </li>
         );
       })}
-    </div>
+    </ul>
   );
 }
 
-function TransparencyFlow({ variant }: { variant: NoticeVariant }) {
+function DataJourney({ variant }: { variant: NoticeVariant }) {
   return (
-    <ol className="notice-flow" aria-label="Data transparency flow">
+    <ol className="data-journey" aria-label="Data use pathway">
       {variant.flow?.map((step, index) => (
         <li key={step.label}>
-          <span className="flow-index">{index + 1}</span>
+          <span className="flow-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
           <span>
             <strong>{step.label}</strong>
             <small>{step.detail}</small>
@@ -83,15 +94,12 @@ function TransparencyFlow({ variant }: { variant: NoticeVariant }) {
   );
 }
 
-function PlainNoticeCopy() {
+function NoticeHeading({ eyebrow, headline, summary }: { eyebrow: string; headline: string; summary: string }) {
   return (
-    <div className="plain-notice-copy">
-      {referenceNoticeSections.map((section) => (
-        <section key={section.id}>
-          <h3>{section.label}</h3>
-          <p>{section.body}</p>
-        </section>
-      ))}
+    <div className="notice-heading">
+      <span>{eyebrow}</span>
+      <h2>{headline}</h2>
+      <p>{summary}</p>
     </div>
   );
 }
@@ -100,58 +108,40 @@ export function NoticePresentation({ variant, surface }: NoticePresentationProps
   if (surface === 'reference-text') {
     return (
       <section className="notice-presentation reference-notice" aria-label="Reference text privacy notice">
-        <div className="notice-heading">
-          <span className="notice-format-pill">Standard text notice</span>
-          <h2>Example AI data sharing notice</h2>
-          <p>
-            This text notice describes the same study intent: optional sharing of AI interactions to improve future
-            AI systems.
-          </p>
-        </div>
-        <PlainNoticeCopy />
+        <NoticeHeading
+          eyebrow="Standard text notice"
+          headline="Example AI data sharing notice"
+          summary="This text notice describes the same study intent: optional sharing of AI interactions to improve future AI systems."
+        />
+        <DisclosureSections />
       </section>
     );
   }
 
-  if (variant.format === 'plain_text') {
+  if (variant.visualDesignVariantId === 'disclosure-ledger-v2') {
     return (
-      <section
-        className={`notice-presentation notice-${variant.id}`}
-        aria-label={`${variant.label} privacy notice presentation`}
-      >
-        <div className="notice-heading">
-          <span className="notice-format-pill">{variant.label}</span>
-          <h2>{variant.headline}</h2>
-          <p>{variant.summary}</p>
-        </div>
-        <PlainNoticeCopy />
+      <section className="notice-presentation disclosure-ledger" aria-label={`${variant.label} privacy notice presentation`}>
+        <NoticeHeading eyebrow={variant.label} headline={variant.headline} summary={variant.summary} />
+        <DisclosureSections />
+      </section>
+    );
+  }
+
+  if (variant.visualDesignVariantId === 'privacy-controls-v2') {
+    return (
+      <section className="notice-presentation privacy-controls" aria-label={`${variant.label} privacy notice presentation`}>
+        <NoticeHeading eyebrow={variant.label} headline={variant.headline} summary={variant.summary} />
+        {variant.badges ? <PrivacyCommitments badges={variant.badges} /> : null}
+        <DisclosureSections showIcons />
       </section>
     );
   }
 
   return (
-    <section
-      className={`notice-presentation notice-${variant.id}`}
-      aria-label={`${variant.label} privacy notice presentation`}
-    >
-      <div className="notice-heading">
-        <span className="notice-format-pill">{variant.label}</span>
-        <h2>{variant.headline}</h2>
-        <p>{variant.summary}</p>
-      </div>
-
-      <div className="notice-preview-layout">
-        <img className="notice-preview-art" src={variant.assetSrc} alt={variant.assetAlt} />
-        <div className="notice-detail-stack">
-          {variant.badges ? <TrustBadges badges={variant.badges} /> : null}
-          {variant.flow ? <TransparencyFlow variant={variant} /> : null}
-        </div>
-      </div>
-      <ul className="notice-section-list notice-section-grid">
-        {referenceNoticeSections.map((section) => (
-          <NoticeSectionRow key={section.id} section={section} />
-        ))}
-      </ul>
+    <section className="notice-presentation data-journey-notice" aria-label={`${variant.label} privacy notice presentation`}>
+      <NoticeHeading eyebrow={variant.label} headline={variant.headline} summary={variant.summary} />
+      <DataJourney variant={variant} />
+      <DisclosureSections showIcons />
     </section>
   );
 }
