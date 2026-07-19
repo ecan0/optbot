@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { buildStudySteps, noticeHeadline, noticeSummary, noticeVariants, referenceNoticeSections } from './studyContent';
+import {
+  buildStudySteps,
+  noticeHeadline,
+  noticeSummary,
+  referenceNoticeSections,
+  visualNoticeVariant
+} from './studyContent';
 
 const assignedFirstSteps = buildStudySteps('assigned-first');
 const referenceFirstSteps = buildStudySteps('reference-first');
@@ -15,24 +21,22 @@ describe('study content', () => {
     expect(steps).toHaveLength(10);
   });
 
-  it('counterbalances only the two notice review steps', () => {
-    const assignedFirstNoticeSteps = assignedFirstSteps.filter((step) => step.kind === 'notice-review');
-    const referenceFirstNoticeSteps = referenceFirstSteps.filter((step) => step.kind === 'notice-review');
-
-    expect(assignedFirstNoticeSteps.map((step) => [step.noticeSurface, step.eyebrow])).toEqual([
-      ['assigned', 'Notice A'],
-      ['reference-text', 'Notice B']
+  it('counterbalances each notice together with its immediate ratings', () => {
+    expect(assignedFirstSteps.slice(4, 8).map((step) => step.id)).toEqual([
+      'visual_notice_review',
+      'visual_notice_attitudes',
+      'text_notice_review',
+      'text_notice_attitudes'
     ]);
-    expect(referenceFirstNoticeSteps.map((step) => [step.noticeSurface, step.eyebrow])).toEqual([
-      ['reference-text', 'Notice B'],
-      ['assigned', 'Notice A']
+    expect(referenceFirstSteps.slice(4, 8).map((step) => step.id)).toEqual([
+      'text_notice_review',
+      'text_notice_attitudes',
+      'visual_notice_review',
+      'visual_notice_attitudes'
     ]);
-    expect(referenceFirstSteps.filter((step) => step.kind !== 'notice-review').map((step) => step.id)).toEqual(
-      assignedFirstSteps.filter((step) => step.kind !== 'notice-review').map((step) => step.id)
-    );
   });
 
-  it('shows exactly Notice A and Notice B while preserving semantic answer ids', () => {
+  it('labels the preference options by presentation while preserving semantic answer ids', () => {
     const assignedFirstPreference = assignedFirstSteps.find((step) => step.id === 'presentation_preference');
     const referenceFirstPreference = referenceFirstSteps.find((step) => step.id === 'presentation_preference');
 
@@ -44,16 +48,16 @@ describe('study content', () => {
     }
 
     expect(assignedFirstPreference.choices.map(({ id, label }) => ({ id, label }))).toEqual([
-      { id: 'prefer_assigned_notice', label: 'Notice A' },
-      { id: 'prefer_text_notice', label: 'Notice B' }
+      { id: 'prefer_visual_notice', label: 'Visual presentation' },
+      { id: 'prefer_text_notice', label: 'Plain-text presentation' }
     ]);
     expect(referenceFirstPreference.choices.map(({ id, label }) => ({ id, label }))).toEqual([
-      { id: 'prefer_assigned_notice', label: 'Notice A' },
-      { id: 'prefer_text_notice', label: 'Notice B' }
+      { id: 'prefer_visual_notice', label: 'Visual presentation' },
+      { id: 'prefer_text_notice', label: 'Plain-text presentation' }
     ]);
   });
 
-  it('requires two five-word final responses without placeholder examples', () => {
+  it('requires two focused interview responses without placeholder examples', () => {
     const feedbackStep = assignedFirstSteps.find((step) => step.id === 'open_response');
     expect(feedbackStep?.kind).toBe('text-group');
 
@@ -62,8 +66,18 @@ describe('study content', () => {
     }
 
     expect(feedbackStep.required).toBe(true);
-    expect(feedbackStep.questions).toHaveLength(2);
-    expect(feedbackStep.questions.every((question) => question.required && question.minimumWords === 5)).toBe(true);
+    expect(feedbackStep.questions).toEqual([
+      expect.objectContaining({
+        id: 'notice_descriptions',
+        required: true,
+        minimumWords: 5
+      }),
+      expect.objectContaining({
+        id: 'decision_influence',
+        required: true,
+        minimumWords: 5
+      })
+    ]);
     expect(feedbackStep.questions.every((question) => !('placeholder' in question))).toBe(true);
   });
 
@@ -104,41 +118,43 @@ describe('study content', () => {
     }
   });
 
-  it('splits five rating outcomes into focused three- and two-item steps', () => {
+  it('asks the same four attitude questions immediately after each notice', () => {
     const ratingSteps = assignedFirstSteps.filter((step) => step.kind === 'likert-group');
 
     expect(ratingSteps.map((step) => [step.id, step.questions.map((question) => question.id)])).toEqual([
       [
-        'notice_evaluation_clarity',
-        ['clarity_rating', 'trust_rating', 'confidence_rating']
+        'visual_notice_attitudes',
+        ['visual_willingness', 'visual_trust', 'visual_completeness', 'visual_ease_of_use']
       ],
       [
-        'notice_evaluation_decision',
-        ['completeness_rating', 'ease_of_use_rating']
+        'text_notice_attitudes',
+        ['text_willingness', 'text_trust', 'text_completeness', 'text_ease_of_use']
       ]
     ]);
   });
+  it('limits participant context to age and AI usage frequency', () => {
+    const contextStep = assignedFirstSteps.find((step) => step.id === 'participant_context');
 
-  it('defines fixed notice variants with recorded v5 design metadata', () => {
-    expect(noticeVariants).toHaveLength(3);
+    expect(contextStep?.kind).toBe('context');
+    if (contextStep?.kind !== 'context') {
+      throw new Error('Expected participant context step');
+    }
 
-    const ids = noticeVariants.map((variant) => variant.id);
-    expect(new Set(ids).size).toBe(ids.length);
-    expect(ids).toEqual(['icon-led-disclosure', 'trust-cue-summary', 'transparency-flow']);
-    expect(noticeVariants.map((variant) => variant.visualDesignVariantId)).toEqual([
-      'disclosure-ledger-v5',
-      'privacy-controls-v5',
-      'data-journey-v5'
-    ]);
+    expect(contextStep.questions.map((question) => question.id)).toEqual(['age_range', 'ai_usage_frequency']);
+  });
 
-    for (const variant of noticeVariants) {
-      expect(variant.designAttributes).toMatchObject({
+  it('defines one fixed visual treatment with recorded design metadata', () => {
+    expect(visualNoticeVariant).toMatchObject({
+      id: 'icon-led-disclosure',
+      format: 'visual_disclosure_ledger',
+      visualDesignVariantId: 'disclosure-ledger-v5',
+      designAttributes: {
         colorway: expect.any(String),
         iconStyle: expect.any(String),
         density: 'spacious',
         sectionEmphasis: expect.any(String),
         layout: expect.any(String)
-      });
-    }
+      }
+    });
   });
 });

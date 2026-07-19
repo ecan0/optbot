@@ -7,7 +7,6 @@ import type {
   ChoiceQuestion,
   NoticeReviewStep,
   NoticeSurface,
-  NoticeVariant,
   TextQuestion,
   StudyStep,
   SurveyAnswers
@@ -17,7 +16,6 @@ import { NoticeIdentityBadge, NoticePresentation } from './NoticePresentation';
 type StepRendererProps = {
   step: StudyStep;
   answers: SurveyAnswers;
-  assignedVariant: NoticeVariant;
   onAnswer: (answerId: string, value: AnswerValue) => void;
 };
 
@@ -133,19 +131,17 @@ function TextQuestionField({
 function NoticeReview({
   step,
   answers,
-  assignedVariant,
   onAnswer
 }: {
   step: NoticeReviewStep;
   answers: SurveyAnswers;
-  assignedVariant: NoticeVariant;
   onAnswer: (answerId: string, value: AnswerValue) => void;
 }) {
   const reviewed = answers[step.id] === reviewAcknowledgedValue;
 
   return (
     <div className="notice-review-stack">
-      <NoticePresentation variant={assignedVariant} surface={step.noticeSurface} />
+      <NoticePresentation surface={step.noticeSurface} />
       <button
         className={reviewed ? 'review-confirm selected' : 'review-confirm'}
         type="button"
@@ -155,7 +151,6 @@ function NoticeReview({
         <NoticeIdentityBadge
           slot={getNoticeSlot(step.noticeSurface)}
           surface={step.noticeSurface}
-          variant={assignedVariant}
           icon={step.noticeSurface === 'reference-text' ? 'route' : undefined}
         />
         <span>{reviewed ? `Notice ${getNoticeSlot(step.noticeSurface)} reviewed` : step.acknowledgementLabel}</span>
@@ -164,7 +159,7 @@ function NoticeReview({
   );
 }
 
-export function StepRenderer({ step, answers, assignedVariant, onAnswer }: StepRendererProps) {
+export function StepRenderer({ step, answers, onAnswer }: StepRendererProps) {
   switch (step.kind) {
     case 'intro':
       return (
@@ -184,7 +179,7 @@ export function StepRenderer({ step, answers, assignedVariant, onAnswer }: StepR
             const preferenceSurfaces: NoticeSurface[] =
               step.id !== 'presentation_preference'
                 ? []
-                : choice.id === 'prefer_assigned_notice'
+                : choice.id === 'prefer_visual_notice'
                   ? ['assigned']
                   : ['reference-text'];
 
@@ -199,7 +194,6 @@ export function StepRenderer({ step, answers, assignedVariant, onAnswer }: StepR
                           key={surface}
                           slot={getNoticeSlot(surface)}
                           surface={surface}
-                          variant={assignedVariant}
                           icon={surface === 'assigned' ? 'file-text' : 'route'}
                         />
                       ))}
@@ -241,7 +235,7 @@ export function StepRenderer({ step, answers, assignedVariant, onAnswer }: StepR
         </ol>
       );
     case 'notice-review':
-      return <NoticeReview step={step} answers={answers} assignedVariant={assignedVariant} onAnswer={onAnswer} />;
+      return <NoticeReview step={step} answers={answers} onAnswer={onAnswer} />;
     case 'likert-group': {
       const completion = getStepCompletion(step, answers);
       return (

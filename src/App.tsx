@@ -3,10 +3,9 @@ import { submitResponse, type SubmitResult } from './api';
 import { CompletionScreen } from './components/CompletionScreen';
 import { StepRenderer } from './components/StepRenderer';
 import { SurveyFrame } from './components/SurveyFrame';
-import { buildStudySteps, consentVersion } from './studyContent';
+import { buildStudySteps, consentVersion, visualNoticeVariant } from './studyContent';
 import {
   assignNoticePresentationOrder,
-  assignNoticeVariant,
   buildResponsePayload,
   getStepCompletion,
   getStepValidationMessage,
@@ -25,7 +24,6 @@ function App() {
   const [status, setStatus] = useState<'idle' | 'submitting' | 'done'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [submitResult, setSubmitResult] = useState<SubmitResult | undefined>();
-  const assignedVariant = useMemo(() => assignNoticeVariant(sessionStorage, crypto), []);
   const noticeOrder = useMemo(() => assignNoticePresentationOrder(sessionStorage, crypto), []);
   const studySteps = useMemo(() => buildStudySteps(noticeOrder), [noticeOrder]);
   const step = studySteps[stepIndex];
@@ -53,7 +51,7 @@ function App() {
   } else if (step.id === 'presentation_preference' && !canAdvance) {
     primaryActionLabel = 'Choose Notice A or Notice B';
   } else if (step.kind === 'text-group' && !canAdvance) {
-    primaryActionLabel = 'Complete both responses';
+    primaryActionLabel = remainingRequired === 1 ? 'Complete required response' : 'Complete required responses';
     incompleteMessage = `${remainingRequired} required ${remainingRequired === 1 ? 'response' : 'responses'} remaining`;
   } else if (!canAdvance) {
     primaryActionLabel =
@@ -78,7 +76,7 @@ function App() {
       surveyId,
       consentVersion,
       answers,
-      variant: assignedVariant,
+      variant: visualNoticeVariant,
       startedAt,
       noticeOrder,
       completedAt,
@@ -163,7 +161,6 @@ function App() {
       <div data-step-body key={step.id}>
         <StepRenderer
           answers={answers}
-          assignedVariant={assignedVariant}
           onAnswer={setAnswer}
           step={step}
         />

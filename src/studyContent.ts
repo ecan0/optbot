@@ -4,11 +4,10 @@ import type {
   NoticeReviewStep,
   NoticeSection,
   NoticeVariant,
-  SingleChoiceStep,
   StudyStep
 } from './types';
 
-export const surveyFlowVersion = 'privacy-notice-comparison-v5';
+export const surveyFlowVersion = 'paired-notice-attitudes-v0.7.5';
 export const consentVersion = 'ai-training-consent-v1';
 export const noticeHeadline = 'Optbot Assistant model-improvement notice';
 export const noticeSummary =
@@ -54,47 +53,19 @@ export const referenceNoticeSections: NoticeSection[] = [
 ];
 
 
-export const noticeVariants: NoticeVariant[] = [
-  {
-    id: 'icon-led-disclosure',
-    label: 'Icon-led disclosure',
-    format: 'visual_disclosure_ledger',
-    visualDesignVariantId: 'disclosure-ledger-v5',
-    designAttributes: {
-      colorway: 'charcoal, ivory, and periwinkle',
-      iconStyle: 'large monoline section symbols',
-      density: 'spacious',
-      sectionEmphasis: 'four equal disclosure sections',
-      layout: 'vertical icon-led disclosure'
-    }
-  },
-  {
-    id: 'trust-cue-summary',
-    label: 'Privacy cue summary',
-    format: 'visual_trust_cues',
-    visualDesignVariantId: 'privacy-controls-v5',
-    designAttributes: {
-      colorway: 'charcoal, ivory, and periwinkle',
-      iconStyle: 'monoline control symbols with check markers',
-      density: 'spacious',
-      sectionEmphasis: 'protections and participant control',
-      layout: 'vertical privacy control sections'
-    }
-  },
-  {
-    id: 'transparency-flow',
-    label: 'Transparency flow notice',
-    format: 'visual_transparency_flow',
-    visualDesignVariantId: 'data-journey-v5',
-    designAttributes: {
-      colorway: 'charcoal, ivory, periwinkle, and amber',
-      iconStyle: 'section symbols with pathway connectors',
-      density: 'spacious',
-      sectionEmphasis: 'data journey and decision points',
-      layout: 'vertical data-use pathway'
-    }
+export const visualNoticeVariant: NoticeVariant = {
+  id: 'icon-led-disclosure',
+  label: 'Icon-led disclosure',
+  format: 'visual_disclosure_ledger',
+  visualDesignVariantId: 'disclosure-ledger-v5',
+  designAttributes: {
+    colorway: 'charcoal, ivory, and periwinkle',
+    iconStyle: 'large monoline section symbols',
+    density: 'spacious',
+    sectionEmphasis: 'four equal disclosure sections',
+    layout: 'vertical icon-led disclosure'
   }
-];
+};
 
 const studySteps: StudyStep[] = [
   {
@@ -102,11 +73,11 @@ const studySteps: StudyStep[] = [
     eyebrow: 'Welcome',
     title: 'Review two privacy notices for a simulated Optbot Assistant service.',
     prompt:
-      'Optbot Assistant is a simulated artificial intelligence (AI) service. This study asks how two presentations of the same model-improvement notice affect trust and understanding.',
+      'Optbot Assistant is a simulated artificial intelligence (AI) service. This study compares how text and visual cues affect attitudes toward sharing data for model improvement.',
     kind: 'intro',
     highlights: [
-      { label: 'Focus', value: 'Model-improvement notices' },
-      { label: 'Time', value: 'About 2-3 minutes' },
+      { label: 'Focus', value: 'Text and visual privacy notices' },
+      { label: 'Time', value: 'About 3 minutes' },
       { label: 'Data', value: 'Survey answers' }
     ]
   },
@@ -126,9 +97,9 @@ const studySteps: StudyStep[] = [
   {
     id: 'participant_context',
     eyebrow: 'About You',
-    title: 'Share a little context before reviewing the notice.',
+    title: 'Share a little context before reviewing the notices.',
     prompt:
-      'These questions help compare responses across adults from different communities without collecting direct personal identifiers.',
+      'These two questions provide basic context without collecting direct personal identifiers.',
     kind: 'context',
     required: true,
     questions: [
@@ -146,34 +117,11 @@ const studySteps: StudyStep[] = [
         ]
       },
       {
-        id: 'participant_status',
-        prompt: 'Current role',
-        required: true,
-        choices: [
-          { id: 'student', label: 'Student' },
-          { id: 'professional', label: 'Working professional' },
-          { id: 'both_student_professional', label: 'Both' },
-          { id: 'other_status', label: 'Another role' },
-          { id: 'prefer_not_status', label: 'Prefer not to say' }
-        ]
-      },
-      {
-        id: 'ai_experience_level',
-        prompt: 'Experience with AI tools',
-        required: true,
-        choices: [
-          { id: 'none', label: 'No experience' },
-          { id: 'tried_once', label: 'Tried once or twice' },
-          { id: 'regular', label: 'Use sometimes' },
-          { id: 'advanced', label: 'Use often or deeply' }
-        ]
-      },
-      {
         id: 'ai_usage_frequency',
         prompt: 'How often do you use AI tools?',
         required: true,
         choices: [
-          { id: 'rarely', label: 'Rarely' },
+          { id: 'rarely', label: 'Never or almost never' },
           { id: 'monthly', label: 'Monthly' },
           { id: 'weekly', label: 'Weekly' },
           { id: 'daily', label: 'Daily' }
@@ -184,126 +132,142 @@ const studySteps: StudyStep[] = [
   {
     id: 'notice_instructions',
     eyebrow: 'Review task',
-    title: 'Compare two layouts of the same privacy notice.',
+    title: 'Compare two presentations of the same privacy notice.',
     prompt:
-      'Notice A and Notice B contain the same terms in the same order. Their layouts differ, and their review order is set for this session.',
+      'Notice A and Notice B contain the same terms in the same order. One uses visual cues and one uses plain text. Their review order is set for this session.',
     kind: 'instructions',
     callouts: [
-      { label: 'Read every section', detail: 'Review what is shared, how Optbot uses it, and how long Optbot keeps it.' },
-      { label: 'Compare the layouts', detail: 'Consider readability, trust, completeness, and ease of use.' },
-      { label: 'Choose one notice', detail: 'After both reviews, select Notice A or Notice B.' }
+      { label: 'Review a notice', detail: 'Read what is shared, how Optbot uses it, and how long Optbot keeps it.' },
+      { label: 'Rate it', detail: 'Answer the same four questions immediately after each notice.' },
+      { label: 'Compare both', detail: 'Choose the presentation you prefer, then briefly explain your decision.' }
     ]
   },
   {
     id: 'visual_notice_review',
-    eyebrow: 'Assigned Notice',
-    title: 'Review this privacy notice presentation.',
-    prompt:
-      'This is the notice condition assigned for this session. The assigned format and visual design are recorded with your response.',
+    eyebrow: 'Notice A',
+    title: 'Review privacy notice A.',
+    prompt: 'Read each section of Notice A before confirming your review.',
     kind: 'notice-review',
     noticeSurface: 'assigned',
     required: true,
-    acknowledgementLabel: 'I reviewed this notice presentation'
+    acknowledgementLabel: 'I reviewed Notice A'
   },
   {
-    id: 'text_notice_review',
-    eyebrow: 'Reference Notice',
-    title: 'Now review the same notice as text.',
-    prompt:
-      'This text version includes the same study intent so you can compare presentation style, clarity, and completeness.',
-    kind: 'notice-review',
-    noticeSurface: 'reference-text',
-    required: true,
-    acknowledgementLabel: 'I reviewed the text notice'
-  },
-  {
-    id: 'presentation_preference',
-    eyebrow: 'Preference',
-    title: 'Which notice would you choose before deciding whether to share data?',
-    prompt: 'Choose Notice A or Notice B.',
-    kind: 'single',
-    required: true,
-    choices: [
-      {
-        id: 'prefer_assigned_notice',
-        label: 'Assigned notice'
-      },
-      {
-        id: 'prefer_text_notice',
-        label: 'Reference notice'
-      }
-    ]
-  },
-  {
-    id: 'notice_evaluation_clarity',
-    eyebrow: 'Notice Ratings',
-    title: 'Rate clarity, trust, and confidence.',
-    prompt: 'Use a 1-5 scale for each statement.',
+    id: 'visual_notice_attitudes',
+    eyebrow: 'Notice A Ratings',
+    title: 'Rate Notice A.',
+    prompt: 'Answer based only on the notice you just reviewed.',
     kind: 'likert-group',
     required: true,
     scale: likertScale,
     questions: [
       {
-        id: 'clarity_rating',
-        label: 'The notice made it clear what data may be collected and used.',
-        lowLabel: 'Not clear',
-        highLabel: 'Very clear'
+        id: 'visual_willingness',
+        label: 'I would be willing to share my session data under this notice.',
+        lowLabel: 'Not willing',
+        highLabel: 'Very willing'
       },
       {
-        id: 'trust_rating',
-        label: 'The notice made the AI system feel trustworthy.',
+        id: 'visual_trust',
+        label: 'This notice made the AI system feel trustworthy.',
         lowLabel: 'Low trust',
         highLabel: 'High trust'
       },
       {
-        id: 'confidence_rating',
-        label: 'I feel confident I understood what I would be agreeing to.',
-        lowLabel: 'Not confident',
-        highLabel: 'Very confident'
-      }
-    ]
-  },
-  {
-    id: 'notice_evaluation_decision',
-    eyebrow: 'Decision Ratings',
-    title: 'Rate completeness and ease of use.',
-    prompt: 'Use the same 1-5 scale for the final two questions.',
-    kind: 'likert-group',
-    required: true,
-    scale: likertScale,
-    questions: [
-      {
-        id: 'completeness_rating',
-        label: 'The notice included enough information for me to make a decision.',
+        id: 'visual_completeness',
+        label: 'This notice included enough information for me to make a decision.',
         lowLabel: 'Incomplete',
         highLabel: 'Complete'
       },
       {
-        id: 'ease_of_use_rating',
-        label: 'The notice was easy to scan and use.',
+        id: 'visual_ease_of_use',
+        label: 'This notice was easy to scan and use.',
         lowLabel: 'Difficult',
         highLabel: 'Easy'
       }
     ]
   },
   {
+    id: 'text_notice_review',
+    eyebrow: 'Notice B',
+    title: 'Review privacy notice B.',
+    prompt: 'Read each section of Notice B before confirming your review.',
+    kind: 'notice-review',
+    noticeSurface: 'reference-text',
+    required: true,
+    acknowledgementLabel: 'I reviewed Notice B'
+  },
+  {
+    id: 'text_notice_attitudes',
+    eyebrow: 'Notice B Ratings',
+    title: 'Rate Notice B.',
+    prompt: 'Answer based only on the notice you just reviewed.',
+    kind: 'likert-group',
+    required: true,
+    scale: likertScale,
+    questions: [
+      {
+        id: 'text_willingness',
+        label: 'I would be willing to share my session data under this notice.',
+        lowLabel: 'Not willing',
+        highLabel: 'Very willing'
+      },
+      {
+        id: 'text_trust',
+        label: 'This notice made the AI system feel trustworthy.',
+        lowLabel: 'Low trust',
+        highLabel: 'High trust'
+      },
+      {
+        id: 'text_completeness',
+        label: 'This notice included enough information for me to make a decision.',
+        lowLabel: 'Incomplete',
+        highLabel: 'Complete'
+      },
+      {
+        id: 'text_ease_of_use',
+        label: 'This notice was easy to scan and use.',
+        lowLabel: 'Difficult',
+        highLabel: 'Easy'
+      }
+    ]
+  },
+  {
+    id: 'presentation_preference',
+    eyebrow: 'Preference',
+    title: 'Which notice would you prefer before deciding whether to share data?',
+    prompt: 'Choose Notice A or Notice B.',
+    kind: 'single',
+    required: true,
+    choices: [
+      {
+        id: 'prefer_visual_notice',
+        label: 'Visual presentation'
+      },
+      {
+        id: 'prefer_text_notice',
+        label: 'Plain-text presentation'
+      }
+    ]
+  },
+  {
     id: 'open_response',
-    eyebrow: 'Feedback',
-    title: 'Explain your decision.',
-    prompt: 'Answer both questions in at least five words.',
+    eyebrow: 'Interview Responses',
+    title: 'Describe your reactions.',
+    prompt: 'Use your own words. Answer both questions in at least five words each.',
     kind: 'text-group',
     required: true,
     questions: [
       {
-        id: 'concerns_influenced_decision',
-        label: 'What concerns influenced your decision?',
-        helperText: 'Required · 5 words minimum',
+        id: 'notice_descriptions',
+        label: 'What words or short phrases would you use to describe Notice A and Notice B?',
+        helperText: 'Mention both notices · Required · 5 words minimum',
         minimumWords: 5,
         required: true
       },
       {
-        id: 'information_increase_trust',
-        label: 'What information would make you more willing to participate?',
+        id: 'decision_influence',
+        label: 'What most influenced your willingness or unwillingness to share?',
         helperText: 'Required · 5 words minimum',
         minimumWords: 5,
         required: true
@@ -317,51 +281,22 @@ function configureNoticeStep(step: NoticeReviewStep, isFirst: boolean): NoticeRe
 
   return {
     ...step,
-    eyebrow: `Notice ${slot}`,
-    title: isFirst ? `Review privacy notice ${slot}.` : `Now review privacy notice ${slot}.`,
-    prompt: `Read each section of Notice ${slot} before confirming your review.`,
-    acknowledgementLabel: `I reviewed Notice ${slot}`
+    title: isFirst ? `Review privacy notice ${slot}.` : `Now review privacy notice ${slot}.`
   };
 }
 
-function configurePreferenceStep(step: SingleChoiceStep): SingleChoiceStep {
-  const assignedChoice = step.choices.find((choice) => choice.id === 'prefer_assigned_notice');
-  const referenceChoice = step.choices.find((choice) => choice.id === 'prefer_text_notice');
-
-  if (!assignedChoice || !referenceChoice) {
-    throw new Error('Preference step must define assigned and reference notice choices.');
-  }
-
-  return {
-    ...step,
-    choices: [
-      { ...assignedChoice, label: 'Notice A' },
-      { ...referenceChoice, label: 'Notice B' }
-    ]
-  };
-}
 
 export function buildStudySteps(order: NoticePresentationOrder): StudyStep[] {
-  const assignedIndex = studySteps.findIndex(
-    (step) => step.kind === 'notice-review' && step.noticeSurface === 'assigned'
-  );
-  const referenceIndex = studySteps.findIndex(
-    (step) => step.kind === 'notice-review' && step.noticeSurface === 'reference-text'
-  );
-  const assignedStep = studySteps[assignedIndex] as NoticeReviewStep;
-  const referenceStep = studySteps[referenceIndex] as NoticeReviewStep;
-  const orderedNoticeSteps =
-    order === 'assigned-first'
-      ? [configureNoticeStep(assignedStep, true), configureNoticeStep(referenceStep, false)]
-      : [configureNoticeStep(referenceStep, true), configureNoticeStep(assignedStep, false)];
+  const visualReviewIndex = studySteps.findIndex((step) => step.id === 'visual_notice_review');
+  const visualRatingIndex = studySteps.findIndex((step) => step.id === 'visual_notice_attitudes');
+  const textReviewIndex = studySteps.findIndex((step) => step.id === 'text_notice_review');
+  const textRatingIndex = studySteps.findIndex((step) => step.id === 'text_notice_attitudes');
+  const visualReview = studySteps[visualReviewIndex] as NoticeReviewStep;
+  const textReview = studySteps[textReviewIndex] as NoticeReviewStep;
+  const visualBlock = [configureNoticeStep(visualReview, order === 'assigned-first'), studySteps[visualRatingIndex]];
+  const textBlock = [configureNoticeStep(textReview, order === 'reference-first'), studySteps[textRatingIndex]];
+  const orderedNoticeBlocks = order === 'assigned-first' ? [...visualBlock, ...textBlock] : [...textBlock, ...visualBlock];
+  const remainingSteps = studySteps.slice(textRatingIndex + 1);
 
-  const remainingSteps = studySteps.slice(referenceIndex + 1).map((step) =>
-    step.kind === 'single' && step.id === 'presentation_preference' ? configurePreferenceStep(step) : step
-  );
-
-  return [
-    ...studySteps.slice(0, assignedIndex),
-    ...orderedNoticeSteps,
-    ...remainingSteps
-  ];
+  return [...studySteps.slice(0, visualReviewIndex), ...orderedNoticeBlocks, ...remainingSteps];
 }

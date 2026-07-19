@@ -32,7 +32,7 @@ export function createPublicRuntimeConfig(env: ImportMetaEnv): PublicRuntimeConf
     throw new Error('Live collection requires VITE_PUBLIC_API_BASE_URL.');
   }
 
-  if (collectionMode === 'live' && releaseMajor !== null && releaseMajor < 1) {
+  if (collectionMode === 'live' && (releaseMajor === null || releaseMajor < 1)) {
     throw new Error('Live collection is not allowed before v1.0.0.');
   }
 

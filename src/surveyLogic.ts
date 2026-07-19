@@ -1,5 +1,5 @@
 import type { ResponsePayload } from './schema';
-import { noticeVariants, surveyFlowVersion } from './studyContent';
+import { consentVersion, surveyFlowVersion } from './studyContent';
 import { validateTextResponse } from './textValidation';
 import type {
   AnswerValue,
@@ -11,37 +11,19 @@ import type {
   SurveyAnswers
 } from './types';
 
-export const noticeVariantStorageKey = 'optbot_notice_variant';
 export const noticeOrderStorageKey = 'optbot_notice_order';
 export const reviewAcknowledgedValue = 'reviewed';
 
-type VariantStore = Pick<Storage, 'getItem' | 'setItem'>;
+type OrderStore = Pick<Storage, 'getItem' | 'setItem'>;
 type CryptoSource = Pick<Crypto, 'getRandomValues'>;
 
 export function getChoiceAnswerValue(choice: { id: string; value?: AnswerValue }): AnswerValue {
   return choice.value ?? choice.id;
 }
 
-export function getNoticeVariantById(id: string | null | undefined): NoticeVariant | undefined {
-  return noticeVariants.find((variant) => variant.id === id);
-}
-
-export function assignNoticeVariant(store: VariantStore, cryptoSource: CryptoSource): NoticeVariant {
-  const storedVariant = getNoticeVariantById(store.getItem(noticeVariantStorageKey));
-  if (storedVariant) {
-    return storedVariant;
-  }
-
-  const randomValues = new Uint32Array(1);
-  cryptoSource.getRandomValues(randomValues);
-  const randomValue = randomValues[0];
-  const variant = noticeVariants[randomValue % noticeVariants.length];
-  store.setItem(noticeVariantStorageKey, variant.id);
-  return variant;
-}
 
 export function assignNoticePresentationOrder(
-  store: VariantStore,
+  store: OrderStore,
   cryptoSource: CryptoSource
 ): NoticePresentationOrder {
   const storedOrder = store.getItem(noticeOrderStorageKey);
@@ -153,13 +135,13 @@ export function createShownNoticeVariantMetadata(variant: NoticeVariant): Respon
     notice_format: variant.format,
     visual_design_variant_id: variant.visualDesignVariantId,
     visual_design_attributes: variant.designAttributes,
-    assignment_method: 'session-randomized-fixed'
+    assignment_method: 'fixed-study-treatment'
   };
 }
 
 export function buildResponsePayload(args: {
   surveyId: string;
-  consentVersion: string;
+  consentVersion: typeof consentVersion;
   answers: SurveyAnswers;
   variant: NoticeVariant;
   noticeOrder: NoticePresentationOrder;
@@ -174,6 +156,8 @@ export function buildResponsePayload(args: {
     answers: args.answers,
     metadata: {
       survey_flow_version: surveyFlowVersion,
+      study_design: 'within-participant-paired',
+      primary_outcome: 'willingness_to_share',
       started_at: args.startedAt,
       completed_at: args.completedAt,
       user_agent: args.userAgent,

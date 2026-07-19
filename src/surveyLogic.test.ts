@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildStudySteps, consentVersion, noticeVariants } from './studyContent';
+import { buildStudySteps, consentVersion, visualNoticeVariant } from './studyContent';
 import {
   assignNoticePresentationOrder,
   buildResponsePayload,
@@ -54,7 +54,7 @@ describe('survey logic', () => {
 
   it('reports and validates required grouped-answer progress', () => {
     const contextStep = studySteps.find((step) => step.id === 'participant_context');
-    const likertStep = studySteps.find((step) => step.id === 'notice_evaluation_clarity');
+    const likertStep = studySteps.find((step) => step.id === 'visual_notice_attitudes');
 
     expect(contextStep?.kind).toBe('context');
     expect(likertStep?.kind).toBe('likert-group');
@@ -63,7 +63,7 @@ describe('survey logic', () => {
       throw new Error('Expected grouped study steps');
     }
 
-    expect(getStepCompletion(contextStep, { age_range: '18_24' })).toEqual({ completed: 1, total: 4 });
+    expect(getStepCompletion(contextStep, { age_range: '18_24' })).toEqual({ completed: 1, total: 2 });
     expect(isStepComplete(contextStep, { age_range: '18_24' })).toBe(false);
     expect(getStepValidationMessage(contextStep, { age_range: '18_24' })).toContain('context');
 
@@ -72,11 +72,11 @@ describe('survey logic', () => {
     );
 
     expect(isStepComplete(contextStep, completeContext)).toBe(true);
-    expect(getStepCompletion(likertStep, { clarity_rating: 3 })).toEqual({ completed: 1, total: 3 });
-    expect(isStepComplete(likertStep, { clarity_rating: 3 })).toBe(false);
+    expect(getStepCompletion(likertStep, { visual_willingness: 3 })).toEqual({ completed: 1, total: 4 });
+    expect(isStepComplete(likertStep, { visual_willingness: 3 })).toBe(false);
   });
 
-  it('requires substantive five-word responses for both final prompts', () => {
+  it('requires two substantive five-word interview responses', () => {
     const feedbackStep = studySteps.find((step) => step.id === 'open_response');
     expect(feedbackStep?.kind).toBe('text-group');
 
@@ -86,20 +86,20 @@ describe('survey logic', () => {
 
     expect(
       getStepCompletion(feedbackStep, {
-        concerns_influenced_decision: 'Retention limits affected my final decision.',
-        information_increase_trust: 'none none none none none'
+        notice_descriptions: 'Visual and clear versus plain text.',
+        decision_influence: 'none none none none none'
       })
     ).toEqual({ completed: 1, total: 2 });
     expect(
       isStepComplete(feedbackStep, {
-        concerns_influenced_decision: 'Retention limits affected my final decision.',
-        information_increase_trust: 'none none none none none'
+        notice_descriptions: 'Visual and clear versus plain text.',
+        decision_influence: 'none none none none none'
       })
     ).toBe(false);
     expect(
       isStepComplete(feedbackStep, {
-        concerns_influenced_decision: 'Retention limits affected my final decision.',
-        information_increase_trust: 'A deletion deadline would increase my trust.'
+        notice_descriptions: 'Notice A felt visual; Notice B felt plain.',
+        decision_influence: 'Retention limits affected my final decision.'
       })
     ).toBe(true);
   });
@@ -116,13 +116,7 @@ describe('survey logic', () => {
     expect(isStepComplete(reviewStep, { visual_notice_review: reviewAcknowledgedValue })).toBe(true);
   });
 
-  it('records the visual treatment, presentation order, and assigned slot', () => {
-    const variant = noticeVariants.find((noticeVariant) => noticeVariant.id === 'transparency-flow');
-    expect(variant).toBeTruthy();
-
-    if (!variant) {
-      throw new Error('Expected transparency variant');
-    }
+  it('records the fixed visual treatment, presentation order, and assigned slot', () => {
 
     const payload = buildResponsePayload({
       surveyId: 'optbot-study-v1',
@@ -131,32 +125,37 @@ describe('survey logic', () => {
         participation_consent: 'consent_yes',
         visual_notice_review: reviewAcknowledgedValue,
         text_notice_review: reviewAcknowledgedValue,
-        presentation_preference: 'prefer_assigned_notice',
-        clarity_rating: 4,
-        trust_rating: 4,
-        confidence_rating: 4,
-        completeness_rating: 5,
-        ease_of_use_rating: 4,
-        concerns_influenced_decision: 'Retention and deletion controls influenced my decision.',
-        information_increase_trust: 'A specific deletion deadline would increase trust.'
+        presentation_preference: 'prefer_visual_notice',
+        visual_willingness: 4,
+        visual_trust: 4,
+        visual_completeness: 4,
+        visual_ease_of_use: 3,
+        text_willingness: 3,
+        text_trust: 3,
+        text_completeness: 4,
+        text_ease_of_use: 4,
+        notice_descriptions: 'Notice A felt scannable while Notice B felt dense.',
+        decision_influence: 'Retention and deletion controls influenced my decision.'
       },
-      variant,
+      variant: visualNoticeVariant,
       noticeOrder: 'reference-first',
       startedAt: '2026-06-30T00:00:00.000Z',
       completedAt: '2026-06-30T00:02:00.000Z',
       userAgent: 'vitest'
     });
 
-    expect(payload.variant_id).toBe('transparency-flow');
+    expect(payload.variant_id).toBe('icon-led-disclosure');
     expect(payload.metadata).toMatchObject({
-      survey_flow_version: 'privacy-notice-comparison-v5',
+      survey_flow_version: 'paired-notice-attitudes-v0.7.5',
+      study_design: 'within-participant-paired',
+      primary_outcome: 'willingness_to_share',
       notice_presentation_order: 'reference-first',
       assigned_notice_slot: 'A',
       shown_notice_variant: {
-        notice_variant_id: 'transparency-flow',
-        notice_format: 'visual_transparency_flow',
-        visual_design_variant_id: 'data-journey-v5',
-        assignment_method: 'session-randomized-fixed'
+        notice_variant_id: 'icon-led-disclosure',
+        notice_format: 'visual_disclosure_ledger',
+        visual_design_variant_id: 'disclosure-ledger-v5',
+        assignment_method: 'fixed-study-treatment'
       }
     });
   });

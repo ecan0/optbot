@@ -4,34 +4,47 @@ import type { ResponsePayload } from './schema';
 
 const validPayload: ResponsePayload = {
   survey_id: 'optbot-study-v1',
-  variant_id: 'trust-cue-summary',
+  variant_id: 'icon-led-disclosure',
   consent_version: 'ai-training-consent-v1',
   answers: {
     participation_consent: 'consent_yes',
-    presentation_preference: 'prefer_assigned_notice',
-    trust_rating: 4,
-    concerns_influenced_decision: 'Retention and deletion details influenced my decision.',
-    information_increase_trust: 'A concrete deletion timeline would increase trust.',
+    age_range: '25_34',
+    ai_usage_frequency: 'weekly',
+    visual_notice_review: 'reviewed',
+    text_notice_review: 'reviewed',
+    presentation_preference: 'prefer_visual_notice',
+    visual_willingness: 4,
+    visual_trust: 4,
+    visual_completeness: 5,
+    visual_ease_of_use: 3,
+    text_willingness: 3,
+    text_trust: 3,
+    text_completeness: 4,
+    text_ease_of_use: 4,
+    notice_descriptions: 'Notice A felt scannable while Notice B felt plain.',
+    decision_influence: 'Retention and deletion details influenced my decision.'
   },
   metadata: {
-    survey_flow_version: 'privacy-notice-comparison-v5',
+    survey_flow_version: 'paired-notice-attitudes-v0.7.5',
+    study_design: 'within-participant-paired',
+    primary_outcome: 'willingness_to_share',
     started_at: '2026-06-30T00:00:00.000Z',
     completed_at: '2026-06-30T00:02:00.000Z',
     notice_presentation_order: 'assigned-first',
     assigned_notice_slot: 'A',
     shown_notice_variant: {
-      notice_variant_id: 'trust-cue-summary',
-      notice_variant_label: 'Privacy cue summary',
-      notice_format: 'visual_trust_cues',
-      visual_design_variant_id: 'privacy-controls-v5',
+      notice_variant_id: 'icon-led-disclosure',
+      notice_variant_label: 'Icon-led disclosure',
+      notice_format: 'visual_disclosure_ledger',
+      visual_design_variant_id: 'disclosure-ledger-v5',
       visual_design_attributes: {
         colorway: 'charcoal, ivory, and periwinkle',
-        iconStyle: 'monoline control symbols',
-        density: 'balanced',
-        sectionEmphasis: 'protections and participant control',
-        layout: 'stacked privacy commitment rows'
+        iconStyle: 'large monoline section symbols',
+        density: 'spacious',
+        sectionEmphasis: 'four equal disclosure sections',
+        layout: 'vertical icon-led disclosure'
       },
-      assignment_method: 'session-randomized-fixed'
+      assignment_method: 'fixed-study-treatment'
     }
   }
 };

@@ -10,15 +10,42 @@ export const visualDesignAttributesSchema = z.object({
 });
 
 const answerValueSchema = z.union([z.string().max(4000), z.number().finite()]);
-const requiredTextResponseIds = [
-  'concerns_influenced_decision',
-  'information_increase_trust'
+const requiredTextResponseIds = ['notice_descriptions', 'decision_influence'] as const;
+
+const requiredRatingIds = [
+  'visual_willingness',
+  'visual_trust',
+  'visual_completeness',
+  'visual_ease_of_use',
+  'text_willingness',
+  'text_trust',
+  'text_completeness',
+  'text_ease_of_use'
 ] as const;
+
+const requiredChoiceEntries: ReadonlyArray<readonly [string, readonly string[]]> = [
+  ['participation_consent', ['consent_yes']],
+  ['age_range', ['18_24', '25_34', '35_44', '45_54', '55_65', 'prefer_not_age']],
+  ['ai_usage_frequency', ['rarely', 'monthly', 'weekly', 'daily']],
+  ['visual_notice_review', ['reviewed']],
+  ['text_notice_review', ['reviewed']]
+];
 
 
 const answersSchema = z.record(z.string(), answerValueSchema).superRefine((answers, context) => {
+  for (const [answerId, allowedValues] of requiredChoiceEntries) {
+    const answer = answers[answerId];
+    if (typeof answer !== 'string' || !allowedValues.includes(answer)) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Complete every required study question.',
+        path: [answerId]
+      });
+    }
+  }
+
   if (
-    answers.presentation_preference !== 'prefer_assigned_notice' &&
+    answers.presentation_preference !== 'prefer_visual_notice' &&
     answers.presentation_preference !== 'prefer_text_notice'
   ) {
     context.addIssue({
@@ -26,6 +53,17 @@ const answersSchema = z.record(z.string(), answerValueSchema).superRefine((answe
       message: 'Choose Notice A or Notice B.',
       path: ['presentation_preference']
     });
+  }
+
+  for (const answerId of requiredRatingIds) {
+    const rating = answers[answerId];
+    if (typeof rating !== 'number' || !Number.isInteger(rating) || rating < 1 || rating > 5) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Choose a rating from 1 to 5.',
+        path: [answerId]
+      });
+    }
   }
 
   for (const answerId of requiredTextResponseIds) {
@@ -41,21 +79,23 @@ const answersSchema = z.record(z.string(), answerValueSchema).superRefine((answe
 });
 
 export const shownNoticeVariantSchema = z.object({
-  notice_variant_id: z.enum(['icon-led-disclosure', 'trust-cue-summary', 'transparency-flow']),
+  notice_variant_id: z.literal('icon-led-disclosure'),
   notice_variant_label: z.string().min(1).max(160),
-  notice_format: z.enum(['visual_disclosure_ledger', 'visual_trust_cues', 'visual_transparency_flow']),
-  visual_design_variant_id: z.enum(['disclosure-ledger-v5', 'privacy-controls-v5', 'data-journey-v5']),
+  notice_format: z.literal('visual_disclosure_ledger'),
+  visual_design_variant_id: z.literal('disclosure-ledger-v5'),
   visual_design_attributes: visualDesignAttributesSchema,
-  assignment_method: z.literal('session-randomized-fixed')
+  assignment_method: z.literal('fixed-study-treatment')
 });
 
 export const responsePayloadSchema = z.object({
   survey_id: z.string().min(1).max(120),
-  variant_id: z.string().min(1).max(120),
-  consent_version: z.string().min(1).max(120),
+  variant_id: z.literal('icon-led-disclosure'),
+  consent_version: z.literal('ai-training-consent-v1'),
   answers: answersSchema,
   metadata: z.object({
-    survey_flow_version: z.string().min(1).max(120),
+    survey_flow_version: z.literal('paired-notice-attitudes-v0.7.5'),
+    study_design: z.literal('within-participant-paired'),
+    primary_outcome: z.literal('willingness_to_share'),
     started_at: z.string().datetime(),
     completed_at: z.string().datetime(),
     user_agent: z.string().max(500).optional(),

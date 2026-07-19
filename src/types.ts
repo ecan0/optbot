@@ -102,11 +102,11 @@ export type NoticeSurface = 'assigned' | 'reference-text';
 export type NoticePresentationOrder = 'assigned-first' | 'reference-first';
 export type NoticeSlot = 'A' | 'B';
 
-export type NoticeVariantId = 'icon-led-disclosure' | 'trust-cue-summary' | 'transparency-flow';
+export type NoticeVariantId = 'icon-led-disclosure';
 
-export type NoticeFormat = 'visual_disclosure_ledger' | 'visual_trust_cues' | 'visual_transparency_flow';
+export type NoticeFormat = 'visual_disclosure_ledger';
 
-export type VisualDesignVariantId = 'disclosure-ledger-v5' | 'privacy-controls-v5' | 'data-journey-v5';
+export type VisualDesignVariantId = 'disclosure-ledger-v5';
 
 export type VisualDesignAttributes = {
   colorway: string;
@@ -134,6 +134,8 @@ export type NoticeVariant = {
 
 export type ParticipantMetadata = {
   survey_flow_version: string;
+  study_design: 'within-participant-paired';
+  primary_outcome: 'willingness_to_share';
   started_at: string;
   completed_at: string;
   user_agent?: string;
@@ -145,6 +147,6 @@ export type ParticipantMetadata = {
     notice_format: NoticeFormat;
     visual_design_variant_id: VisualDesignVariantId;
     visual_design_attributes: VisualDesignAttributes;
-    assignment_method: 'session-randomized-fixed';
+    assignment_method: 'fixed-study-treatment';
   };
 };
