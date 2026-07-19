@@ -10,15 +10,23 @@ export const visualDesignAttributesSchema = z.object({
 });
 
 const answerValueSchema = z.union([z.string().max(4000), z.number().finite()]);
-const requiredTextResponseIds = [
-  'concerns_influenced_decision',
-  'information_increase_trust'
+const requiredTextResponseIds = ['decision_influence'] as const;
+
+const requiredRatingIds = [
+  'visual_willingness',
+  'visual_trust',
+  'visual_understanding',
+  'visual_privacy_concern',
+  'text_willingness',
+  'text_trust',
+  'text_understanding',
+  'text_privacy_concern'
 ] as const;
 
 
 const answersSchema = z.record(z.string(), answerValueSchema).superRefine((answers, context) => {
   if (
-    answers.presentation_preference !== 'prefer_assigned_notice' &&
+    answers.presentation_preference !== 'prefer_visual_notice' &&
     answers.presentation_preference !== 'prefer_text_notice'
   ) {
     context.addIssue({
@@ -26,6 +34,17 @@ const answersSchema = z.record(z.string(), answerValueSchema).superRefine((answe
       message: 'Choose Notice A or Notice B.',
       path: ['presentation_preference']
     });
+  }
+
+  for (const answerId of requiredRatingIds) {
+    const rating = answers[answerId];
+    if (typeof rating !== 'number' || !Number.isInteger(rating) || rating < 1 || rating > 5) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Choose a rating from 1 to 5.',
+        path: [answerId]
+      });
+    }
   }
 
   for (const answerId of requiredTextResponseIds) {

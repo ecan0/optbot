@@ -21,21 +21,19 @@ describe('study content', () => {
     expect(steps).toHaveLength(10);
   });
 
-  it('counterbalances only the two notice review steps', () => {
-    const assignedFirstNoticeSteps = assignedFirstSteps.filter((step) => step.kind === 'notice-review');
-    const referenceFirstNoticeSteps = referenceFirstSteps.filter((step) => step.kind === 'notice-review');
-
-    expect(assignedFirstNoticeSteps.map((step) => [step.noticeSurface, step.eyebrow])).toEqual([
-      ['assigned', 'Notice A'],
-      ['reference-text', 'Notice B']
+  it('counterbalances each notice together with its immediate ratings', () => {
+    expect(assignedFirstSteps.slice(4, 8).map((step) => step.id)).toEqual([
+      'visual_notice_review',
+      'visual_notice_attitudes',
+      'text_notice_review',
+      'text_notice_attitudes'
     ]);
-    expect(referenceFirstNoticeSteps.map((step) => [step.noticeSurface, step.eyebrow])).toEqual([
-      ['reference-text', 'Notice B'],
-      ['assigned', 'Notice A']
+    expect(referenceFirstSteps.slice(4, 8).map((step) => step.id)).toEqual([
+      'text_notice_review',
+      'text_notice_attitudes',
+      'visual_notice_review',
+      'visual_notice_attitudes'
     ]);
-    expect(referenceFirstSteps.filter((step) => step.kind !== 'notice-review').map((step) => step.id)).toEqual(
-      assignedFirstSteps.filter((step) => step.kind !== 'notice-review').map((step) => step.id)
-    );
   });
 
   it('shows exactly Notice A and Notice B while preserving semantic answer ids', () => {
@@ -50,16 +48,16 @@ describe('study content', () => {
     }
 
     expect(assignedFirstPreference.choices.map(({ id, label }) => ({ id, label }))).toEqual([
-      { id: 'prefer_assigned_notice', label: 'Notice A' },
+      { id: 'prefer_visual_notice', label: 'Notice A' },
       { id: 'prefer_text_notice', label: 'Notice B' }
     ]);
     expect(referenceFirstPreference.choices.map(({ id, label }) => ({ id, label }))).toEqual([
-      { id: 'prefer_assigned_notice', label: 'Notice A' },
+      { id: 'prefer_visual_notice', label: 'Notice A' },
       { id: 'prefer_text_notice', label: 'Notice B' }
     ]);
   });
 
-  it('requires two five-word final responses without placeholder examples', () => {
+  it('requires one focused five-word response without placeholder examples', () => {
     const feedbackStep = assignedFirstSteps.find((step) => step.id === 'open_response');
     expect(feedbackStep?.kind).toBe('text-group');
 
@@ -68,8 +66,13 @@ describe('study content', () => {
     }
 
     expect(feedbackStep.required).toBe(true);
-    expect(feedbackStep.questions).toHaveLength(2);
-    expect(feedbackStep.questions.every((question) => question.required && question.minimumWords === 5)).toBe(true);
+    expect(feedbackStep.questions).toEqual([
+      expect.objectContaining({
+        id: 'decision_influence',
+        required: true,
+        minimumWords: 5
+      })
+    ]);
     expect(feedbackStep.questions.every((question) => !('placeholder' in question))).toBe(true);
   });
 
@@ -110,19 +113,29 @@ describe('study content', () => {
     }
   });
 
-  it('splits five rating outcomes into focused three- and two-item steps', () => {
+  it('asks the same four attitude questions immediately after each notice', () => {
     const ratingSteps = assignedFirstSteps.filter((step) => step.kind === 'likert-group');
 
     expect(ratingSteps.map((step) => [step.id, step.questions.map((question) => question.id)])).toEqual([
       [
-        'notice_evaluation_clarity',
-        ['clarity_rating', 'trust_rating', 'confidence_rating']
+        'visual_notice_attitudes',
+        ['visual_willingness', 'visual_trust', 'visual_understanding', 'visual_privacy_concern']
       ],
       [
-        'notice_evaluation_decision',
-        ['completeness_rating', 'ease_of_use_rating']
+        'text_notice_attitudes',
+        ['text_willingness', 'text_trust', 'text_understanding', 'text_privacy_concern']
       ]
     ]);
+  });
+  it('limits participant context to age and AI usage frequency', () => {
+    const contextStep = assignedFirstSteps.find((step) => step.id === 'participant_context');
+
+    expect(contextStep?.kind).toBe('context');
+    if (contextStep?.kind !== 'context') {
+      throw new Error('Expected participant context step');
+    }
+
+    expect(contextStep.questions.map((question) => question.id)).toEqual(['age_range', 'ai_usage_frequency']);
   });
 
   it('defines one fixed visual treatment with recorded design metadata', () => {

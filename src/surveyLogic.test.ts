@@ -54,7 +54,7 @@ describe('survey logic', () => {
 
   it('reports and validates required grouped-answer progress', () => {
     const contextStep = studySteps.find((step) => step.id === 'participant_context');
-    const likertStep = studySteps.find((step) => step.id === 'notice_evaluation_clarity');
+    const likertStep = studySteps.find((step) => step.id === 'visual_notice_attitudes');
 
     expect(contextStep?.kind).toBe('context');
     expect(likertStep?.kind).toBe('likert-group');
@@ -63,7 +63,7 @@ describe('survey logic', () => {
       throw new Error('Expected grouped study steps');
     }
 
-    expect(getStepCompletion(contextStep, { age_range: '18_24' })).toEqual({ completed: 1, total: 4 });
+    expect(getStepCompletion(contextStep, { age_range: '18_24' })).toEqual({ completed: 1, total: 2 });
     expect(isStepComplete(contextStep, { age_range: '18_24' })).toBe(false);
     expect(getStepValidationMessage(contextStep, { age_range: '18_24' })).toContain('context');
 
@@ -72,11 +72,11 @@ describe('survey logic', () => {
     );
 
     expect(isStepComplete(contextStep, completeContext)).toBe(true);
-    expect(getStepCompletion(likertStep, { clarity_rating: 3 })).toEqual({ completed: 1, total: 3 });
-    expect(isStepComplete(likertStep, { clarity_rating: 3 })).toBe(false);
+    expect(getStepCompletion(likertStep, { visual_willingness: 3 })).toEqual({ completed: 1, total: 4 });
+    expect(isStepComplete(likertStep, { visual_willingness: 3 })).toBe(false);
   });
 
-  it('requires substantive five-word responses for both final prompts', () => {
+  it('requires one substantive five-word final response', () => {
     const feedbackStep = studySteps.find((step) => step.id === 'open_response');
     expect(feedbackStep?.kind).toBe('text-group');
 
@@ -84,22 +84,14 @@ describe('survey logic', () => {
       throw new Error('Expected final feedback step');
     }
 
-    expect(
-      getStepCompletion(feedbackStep, {
-        concerns_influenced_decision: 'Retention limits affected my final decision.',
-        information_increase_trust: 'none none none none none'
-      })
-    ).toEqual({ completed: 1, total: 2 });
-    expect(
-      isStepComplete(feedbackStep, {
-        concerns_influenced_decision: 'Retention limits affected my final decision.',
-        information_increase_trust: 'none none none none none'
-      })
-    ).toBe(false);
+    expect(getStepCompletion(feedbackStep, { decision_influence: 'none none none none none' })).toEqual({
+      completed: 0,
+      total: 1
+    });
+    expect(isStepComplete(feedbackStep, { decision_influence: 'none none none none none' })).toBe(false);
     expect(
       isStepComplete(feedbackStep, {
-        concerns_influenced_decision: 'Retention limits affected my final decision.',
-        information_increase_trust: 'A deletion deadline would increase my trust.'
+        decision_influence: 'Retention limits affected my final decision.'
       })
     ).toBe(true);
   });
@@ -125,14 +117,16 @@ describe('survey logic', () => {
         participation_consent: 'consent_yes',
         visual_notice_review: reviewAcknowledgedValue,
         text_notice_review: reviewAcknowledgedValue,
-        presentation_preference: 'prefer_assigned_notice',
-        clarity_rating: 4,
-        trust_rating: 4,
-        confidence_rating: 4,
-        completeness_rating: 5,
-        ease_of_use_rating: 4,
-        concerns_influenced_decision: 'Retention and deletion controls influenced my decision.',
-        information_increase_trust: 'A specific deletion deadline would increase trust.'
+        presentation_preference: 'prefer_visual_notice',
+        visual_willingness: 4,
+        visual_trust: 4,
+        visual_understanding: 4,
+        visual_privacy_concern: 3,
+        text_willingness: 3,
+        text_trust: 3,
+        text_understanding: 4,
+        text_privacy_concern: 4,
+        decision_influence: 'Retention and deletion controls influenced my decision.'
       },
       variant: visualNoticeVariant,
       noticeOrder: 'reference-first',
@@ -143,7 +137,7 @@ describe('survey logic', () => {
 
     expect(payload.variant_id).toBe('icon-led-disclosure');
     expect(payload.metadata).toMatchObject({
-      survey_flow_version: 'paired-notice-attitudes-v0.6.5',
+      survey_flow_version: 'paired-notice-attitudes-v0.7.0',
       notice_presentation_order: 'reference-first',
       assigned_notice_slot: 'A',
       shown_notice_variant: {

@@ -184,7 +184,7 @@ export function StepRenderer({ step, answers, assignedVariant, onAnswer }: StepR
             const preferenceSurfaces: NoticeSurface[] =
               step.id !== 'presentation_preference'
                 ? []
-                : choice.id === 'prefer_assigned_notice'
+                : choice.id === 'prefer_visual_notice'
                   ? ['assigned']
                   : ['reference-text'];
 

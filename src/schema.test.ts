@@ -7,15 +7,21 @@ const validPayload = {
   consent_version: 'ai-training-consent-v1',
   answers: {
     participation_consent: 'consent_yes',
-    presentation_preference: 'prefer_assigned_notice',
+    presentation_preference: 'prefer_visual_notice',
     visual_notice_review: 'reviewed',
     text_notice_review: 'reviewed',
-    trust_rating: 4,
-    concerns_influenced_decision: 'Clear retention tradeoffs would help my decision.',
-    information_increase_trust: 'A specific deletion timeline would increase trust.'
+    visual_willingness: 4,
+    visual_trust: 4,
+    visual_understanding: 5,
+    visual_privacy_concern: 3,
+    text_willingness: 3,
+    text_trust: 3,
+    text_understanding: 4,
+    text_privacy_concern: 4,
+    decision_influence: 'Clear retention tradeoffs most influenced my decision.'
   },
   metadata: {
-    survey_flow_version: 'paired-notice-attitudes-v0.6.5',
+    survey_flow_version: 'paired-notice-attitudes-v0.7.0',
     started_at: '2026-06-30T00:00:00.000Z',
     completed_at: '2026-06-30T00:02:00.000Z',
     user_agent: 'vitest',
@@ -84,7 +90,7 @@ describe('responsePayloadSchema', () => {
           ...validPayload,
           answers: {
             ...validPayload.answers,
-            concerns_influenced_decision: feedback
+            decision_influence: feedback
           }
         })
       ).toThrow('Enter a substantive response of at least five words.');
@@ -97,10 +103,22 @@ describe('responsePayloadSchema', () => {
         ...validPayload,
         answers: {
           ...validPayload.answers,
-          information_increase_trust: 'More detail would help'
+          decision_influence: 'More detail would help'
         }
       })
     ).toThrow('Enter a substantive response of at least five words.');
+  });
+
+  it.each([0, 6, 3.5, '4'])('rejects an invalid paired rating: %s', (rating) => {
+    expect(() =>
+      responsePayloadSchema.parse({
+        ...validPayload,
+        answers: {
+          ...validPayload.answers,
+          visual_willingness: rating
+        }
+      })
+    ).toThrow('Choose a rating from 1 to 5.');
   });
 
   it('requires shown notice variant metadata', () => {
