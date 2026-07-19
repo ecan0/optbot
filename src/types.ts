@@ -102,11 +102,11 @@ export type NoticeSurface = 'assigned' | 'reference-text';
 export type NoticePresentationOrder = 'assigned-first' | 'reference-first';
 export type NoticeSlot = 'A' | 'B';
 
-export type NoticeVariantId = 'plain-text-control' | 'trust-cue-summary' | 'transparency-flow';
+export type NoticeVariantId = 'icon-led-disclosure' | 'trust-cue-summary' | 'transparency-flow';
 
-export type NoticeFormat = 'plain_text' | 'visual_trust_cues' | 'visual_transparency_flow';
+export type NoticeFormat = 'visual_disclosure_ledger' | 'visual_trust_cues' | 'visual_transparency_flow';
 
-export type VisualDesignVariantId = 'disclosure-ledger-v4' | 'privacy-controls-v4' | 'data-journey-v4';
+export type VisualDesignVariantId = 'disclosure-ledger-v5' | 'privacy-controls-v5' | 'data-journey-v5';
 
 export type VisualDesignAttributes = {
   colorway: string;
@@ -123,11 +123,6 @@ export type NoticeSection = {
   icon: 'database' | 'shield' | 'user-check' | 'trash' | 'sparkles' | 'file-text';
 };
 
-export type NoticeTreatmentItem = {
-  label: string;
-  detail: string;
-  icon: 'lock' | 'user-check' | 'trash';
-};
 
 export type NoticeVariant = {
   id: NoticeVariantId;
@@ -135,7 +130,6 @@ export type NoticeVariant = {
   format: NoticeFormat;
   visualDesignVariantId: VisualDesignVariantId;
   designAttributes: VisualDesignAttributes;
-  treatmentItems: NoticeTreatmentItem[];
 };
 
 export type ParticipantMetadata = {

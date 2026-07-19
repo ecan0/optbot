@@ -6,7 +6,6 @@ import type {
   Choice,
   ChoiceQuestion,
   NoticeReviewStep,
-  NoticePresentationOrder,
   NoticeSurface,
   NoticeVariant,
   TextQuestion,
@@ -19,7 +18,6 @@ type StepRendererProps = {
   step: StudyStep;
   answers: SurveyAnswers;
   assignedVariant: NoticeVariant;
-  noticeOrder: NoticePresentationOrder;
   onAnswer: (answerId: string, value: AnswerValue) => void;
 };
 
@@ -45,8 +43,7 @@ function ChoiceButton({
       type="button"
       onClick={onSelect}
     >
-      {identity}
-      <span className="choice-title">{choice.label}</span>
+      {identity ?? <span className="choice-title">{choice.label}</span>}
       {choice.detail ? <span className="choice-detail">{choice.detail}</span> : null}
     </button>
   );
@@ -136,20 +133,18 @@ function NoticeReview({
   step,
   answers,
   assignedVariant,
-  noticeOrder,
   onAnswer
 }: {
   step: NoticeReviewStep;
   answers: SurveyAnswers;
   assignedVariant: NoticeVariant;
-  noticeOrder: NoticePresentationOrder;
   onAnswer: (answerId: string, value: AnswerValue) => void;
 }) {
   const reviewed = answers[step.id] === reviewAcknowledgedValue;
 
   return (
     <div className="notice-review-stack">
-      <NoticePresentation noticeOrder={noticeOrder} variant={assignedVariant} surface={step.noticeSurface} />
+      <NoticePresentation variant={assignedVariant} surface={step.noticeSurface} />
       <button
         className={reviewed ? 'review-confirm selected' : 'review-confirm'}
         type="button"
@@ -157,17 +152,17 @@ function NoticeReview({
         aria-pressed={reviewed}
       >
         <NoticeIdentityBadge
-          slot={getNoticeSlot(step.noticeSurface, noticeOrder)}
+          slot={getNoticeSlot(step.noticeSurface)}
           surface={step.noticeSurface}
           variant={assignedVariant}
         />
-        <span>{reviewed ? `Notice ${getNoticeSlot(step.noticeSurface, noticeOrder)} reviewed` : step.acknowledgementLabel}</span>
+        <span>{reviewed ? `Notice ${getNoticeSlot(step.noticeSurface)} reviewed` : step.acknowledgementLabel}</span>
       </button>
     </div>
   );
 }
 
-export function StepRenderer({ step, answers, assignedVariant, noticeOrder, onAnswer }: StepRendererProps) {
+export function StepRenderer({ step, answers, assignedVariant, onAnswer }: StepRendererProps) {
   switch (step.kind) {
     case 'intro':
       return (
@@ -182,7 +177,7 @@ export function StepRenderer({ step, answers, assignedVariant, noticeOrder, onAn
       );
     case 'single': {
       return (
-        <div className="choice-grid">
+        <div className={step.id === 'presentation_preference' ? 'choice-grid preference-choice-grid' : 'choice-grid'}>
           {step.choices.map((choice) => {
             const preferenceSurfaces: NoticeSurface[] =
               step.id !== 'presentation_preference'
@@ -200,9 +195,10 @@ export function StepRenderer({ step, answers, assignedVariant, noticeOrder, onAn
                       {preferenceSurfaces.map((surface) => (
                         <NoticeIdentityBadge
                           key={surface}
-                          slot={getNoticeSlot(surface, noticeOrder)}
+                          slot={getNoticeSlot(surface)}
                           surface={surface}
                           variant={assignedVariant}
+                          icon="shield"
                         />
                       ))}
                     </span>
@@ -243,7 +239,7 @@ export function StepRenderer({ step, answers, assignedVariant, noticeOrder, onAn
         </ol>
       );
     case 'notice-review':
-      return <NoticeReview step={step} answers={answers} assignedVariant={assignedVariant} noticeOrder={noticeOrder} onAnswer={onAnswer} />;
+      return <NoticeReview step={step} answers={answers} assignedVariant={assignedVariant} onAnswer={onAnswer} />;
     case 'likert-group': {
       const completion = getStepCompletion(step, answers);
       return (

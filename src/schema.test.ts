@@ -15,7 +15,7 @@ const validPayload = {
     information_increase_trust: 'A specific deletion timeline would increase trust.'
   },
   metadata: {
-    survey_flow_version: 'privacy-notice-comparison-v4',
+    survey_flow_version: 'privacy-notice-comparison-v5',
     started_at: '2026-06-30T00:00:00.000Z',
     completed_at: '2026-06-30T00:02:00.000Z',
     user_agent: 'vitest',
@@ -25,7 +25,7 @@ const validPayload = {
       notice_variant_id: 'trust-cue-summary',
       notice_variant_label: 'Privacy cue summary',
       notice_format: 'visual_trust_cues',
-      visual_design_variant_id: 'privacy-controls-v4',
+      visual_design_variant_id: 'privacy-controls-v5',
       visual_design_attributes: {
         colorway: 'charcoal, ivory, and periwinkle',
         iconStyle: 'monoline control symbols',
@@ -46,7 +46,7 @@ describe('responsePayloadSchema', () => {
       metadata: {
         shown_notice_variant: {
           notice_variant_id: 'trust-cue-summary',
-          visual_design_variant_id: 'privacy-controls-v4'
+          visual_design_variant_id: 'privacy-controls-v5'
         }
       }
     });

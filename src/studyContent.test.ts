@@ -24,8 +24,8 @@ describe('study content', () => {
       ['reference-text', 'Notice B']
     ]);
     expect(referenceFirstNoticeSteps.map((step) => [step.noticeSurface, step.eyebrow])).toEqual([
-      ['reference-text', 'Notice A'],
-      ['assigned', 'Notice B']
+      ['reference-text', 'Notice B'],
+      ['assigned', 'Notice A']
     ]);
     expect(referenceFirstSteps.filter((step) => step.kind !== 'notice-review').map((step) => step.id)).toEqual(
       assignedFirstSteps.filter((step) => step.kind !== 'notice-review').map((step) => step.id)
@@ -48,8 +48,8 @@ describe('study content', () => {
       { id: 'prefer_text_notice', label: 'Notice B' }
     ]);
     expect(referenceFirstPreference.choices.map(({ id, label }) => ({ id, label }))).toEqual([
-      { id: 'prefer_text_notice', label: 'Notice A' },
-      { id: 'prefer_assigned_notice', label: 'Notice B' }
+      { id: 'prefer_assigned_notice', label: 'Notice A' },
+      { id: 'prefer_text_notice', label: 'Notice B' }
     ]);
   });
 
@@ -75,7 +75,7 @@ describe('study content', () => {
     ].join(' ');
 
     expect(noticeCopy).not.toMatch(/\bexample\b/i);
-    expect(noticeCopy).toContain('OptBot Assistant');
+    expect(noticeCopy).toContain('Optbot Assistant');
     expect(noticeCopy).toContain('up to 90 days');
     expect(noticeCopy).toContain('deletion request');
   });
@@ -119,29 +119,23 @@ describe('study content', () => {
     ]);
   });
 
-  it('defines fixed notice variants with recorded v4 design metadata', () => {
+  it('defines fixed notice variants with recorded v5 design metadata', () => {
     expect(noticeVariants).toHaveLength(3);
 
     const ids = noticeVariants.map((variant) => variant.id);
     expect(new Set(ids).size).toBe(ids.length);
-    expect(ids).toEqual(['plain-text-control', 'trust-cue-summary', 'transparency-flow']);
+    expect(ids).toEqual(['icon-led-disclosure', 'trust-cue-summary', 'transparency-flow']);
     expect(noticeVariants.map((variant) => variant.visualDesignVariantId)).toEqual([
-      'disclosure-ledger-v4',
-      'privacy-controls-v4',
-      'data-journey-v4'
+      'disclosure-ledger-v5',
+      'privacy-controls-v5',
+      'data-journey-v5'
     ]);
-    expect(noticeVariants.map((variant) => variant.treatmentItems)).toEqual([
-      noticeVariants[0].treatmentItems,
-      noticeVariants[0].treatmentItems,
-      noticeVariants[0].treatmentItems
-    ]);
-    expect(noticeVariants[0].treatmentItems).toHaveLength(3);
 
     for (const variant of noticeVariants) {
       expect(variant.designAttributes).toMatchObject({
         colorway: expect.any(String),
         iconStyle: expect.any(String),
-        density: expect.any(String),
+        density: 'spacious',
         sectionEmphasis: expect.any(String),
         layout: expect.any(String)
       });

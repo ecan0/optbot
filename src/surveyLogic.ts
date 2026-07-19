@@ -56,12 +56,8 @@ export function assignNoticePresentationOrder(
   return order;
 }
 
-export function getNoticeSlot(
-  surface: NoticeSurface,
-  order: NoticePresentationOrder
-): NoticeSlot {
-  const assignedIsFirst = order === 'assigned-first';
-  return surface === 'assigned' === assignedIsFirst ? 'A' : 'B';
+export function getNoticeSlot(surface: NoticeSurface): NoticeSlot {
+  return surface === 'assigned' ? 'A' : 'B';
 }
 
 export function getStepCompletion(
@@ -182,7 +178,7 @@ export function buildResponsePayload(args: {
       completed_at: args.completedAt,
       user_agent: args.userAgent,
       notice_presentation_order: args.noticeOrder,
-      assigned_notice_slot: getNoticeSlot('assigned', args.noticeOrder),
+      assigned_notice_slot: getNoticeSlot('assigned'),
       shown_notice_variant: createShownNoticeVariantMetadata(args.variant)
     }
   };

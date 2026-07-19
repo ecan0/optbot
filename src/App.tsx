@@ -165,7 +165,6 @@ function App() {
           answers={answers}
           assignedVariant={assignedVariant}
           onAnswer={setAnswer}
-          noticeOrder={noticeOrder}
           step={step}
         />
       </div>

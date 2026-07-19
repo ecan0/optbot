@@ -41,10 +41,10 @@ const answersSchema = z.record(z.string(), answerValueSchema).superRefine((answe
 });
 
 export const shownNoticeVariantSchema = z.object({
-  notice_variant_id: z.enum(['plain-text-control', 'trust-cue-summary', 'transparency-flow']),
+  notice_variant_id: z.enum(['icon-led-disclosure', 'trust-cue-summary', 'transparency-flow']),
   notice_variant_label: z.string().min(1).max(160),
-  notice_format: z.enum(['plain_text', 'visual_trust_cues', 'visual_transparency_flow']),
-  visual_design_variant_id: z.enum(['disclosure-ledger-v4', 'privacy-controls-v4', 'data-journey-v4']),
+  notice_format: z.enum(['visual_disclosure_ledger', 'visual_trust_cues', 'visual_transparency_flow']),
+  visual_design_variant_id: z.enum(['disclosure-ledger-v5', 'privacy-controls-v5', 'data-journey-v5']),
   visual_design_attributes: visualDesignAttributesSchema,
   assignment_method: z.literal('session-randomized-fixed')
 });

@@ -93,7 +93,7 @@ export function SurveyFrame({
             <ShieldCheck size={21} />
           </span>
           <span className="brand-copy">
-            <strong>OptBot</strong>
+            <strong>Optbot</strong>
             <small>Privacy notice study</small>
           </span>
         </div>
@@ -109,7 +109,7 @@ export function SurveyFrame({
         ) : null}
       </header>
 
-      <div className="study-layout">
+      <div className={stepKind === 'notice-review' ? 'study-layout study-layout-wide' : 'study-layout'}>
         <section className="progress-panel" aria-label="Survey progress">
           <div className="progress-meta">
             <strong>

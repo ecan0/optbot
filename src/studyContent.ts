@@ -3,17 +3,16 @@ import type {
   NoticePresentationOrder,
   NoticeReviewStep,
   NoticeSection,
-  NoticeTreatmentItem,
   NoticeVariant,
   SingleChoiceStep,
   StudyStep
 } from './types';
 
-export const surveyFlowVersion = 'privacy-notice-comparison-v4';
+export const surveyFlowVersion = 'privacy-notice-comparison-v5';
 export const consentVersion = 'ai-training-consent-v1';
-export const noticeHeadline = 'OptBot Assistant model-improvement notice';
+export const noticeHeadline = 'Optbot Assistant model-improvement notice';
 export const noticeSummary =
-  'Effective July 18, 2026. This notice explains what happens if you allow content from this session to be used to improve OptBot Assistant.';
+  'Effective July 18, 2026. If you choose Share, Optbot may use content from this session to improve Optbot Assistant.';
 
 export const likertScale: LikertScaleChoice[] = [
   { id: '1', label: '1', shortLabel: '1', value: 1 },
@@ -29,91 +28,71 @@ export const referenceNoticeSections: NoticeSection[] = [
     label: 'Content covered by this choice',
     icon: 'database',
     body:
-      'If you choose Share, OptBot Assistant sends the prompts, uploaded files, assistant replies, feedback, and technical event data from this session to its model-improvement program.'
+      'If you choose Share, Optbot sends this session’s prompts, uploaded files, assistant replies, feedback, and technical event data to its model-improvement program.'
   },
   {
     id: 'training_use',
     label: 'How the content is used',
     icon: 'sparkles',
     body:
-      'Authorized research and engineering teams may review the content and use it to train, evaluate, and safety-test future models. The content is not used to personalize advertising.'
+      'Authorized research and engineering teams may review this content. They may use it to train, evaluate, and safety-test future models. Optbot does not use it to personalize advertising.'
   },
   {
     id: 'privacy_protections',
     label: 'Privacy safeguards and limits',
     icon: 'shield',
     body:
-      'Automated filters look for direct identifiers such as names, email addresses, phone numbers, and account IDs before training use. Some identifiers may remain, so sensitive information should not be submitted.'
+      'Automated filters check for direct identifiers, including names, email addresses, phone numbers, and account IDs, before training. Some identifiers may remain. Do not submit sensitive information.'
   },
   {
     id: 'participant_control',
     label: 'Retention and your controls',
     icon: 'trash',
     body:
-      'You can decline sharing without losing access to the assistant. OptBot keeps source content for up to 90 days for review. You may submit a deletion request through the service privacy request form.'
+      'You can decline sharing without losing access to Optbot Assistant. Optbot keeps source content for up to 90 days for review. You may submit a deletion request through the service privacy request form.'
   }
 ];
 
-const sharedTreatmentItems: NoticeTreatmentItem[] = [
-  {
-    label: 'You choose whether this session is shared',
-    detail: 'OptBot includes prompts, files, replies, feedback, and technical event data only when you choose Share.',
-    icon: 'lock'
-  },
-  {
-    label: 'Automated filters check direct identifiers before training use',
-    detail: 'The filters look for names, contact details, and account IDs, but some identifiers may remain.',
-    icon: 'user-check'
-  },
-  {
-    label: 'OptBot retains source content for up to 90 days',
-    detail: 'You can decline sharing without losing access, and you may request deletion through the service privacy form.',
-    icon: 'trash'
-  }
-];
 
 export const noticeVariants: NoticeVariant[] = [
   {
-    id: 'plain-text-control',
-    label: 'Plain text consent notice',
-    format: 'plain_text',
-    visualDesignVariantId: 'disclosure-ledger-v4',
+    id: 'icon-led-disclosure',
+    label: 'Icon-led disclosure',
+    format: 'visual_disclosure_ledger',
+    visualDesignVariantId: 'disclosure-ledger-v5',
     designAttributes: {
-      colorway: 'charcoal, ivory, and cool gray',
-      iconStyle: 'none',
-      density: 'dense',
-      sectionEmphasis: 'full disclosure',
-      layout: 'single-column consent ledger'
-    },
-    treatmentItems: sharedTreatmentItems
+      colorway: 'charcoal, ivory, and periwinkle',
+      iconStyle: 'large monoline section symbols',
+      density: 'spacious',
+      sectionEmphasis: 'four equal disclosure sections',
+      layout: 'vertical icon-led disclosure'
+    }
   },
   {
     id: 'trust-cue-summary',
     label: 'Privacy cue summary',
     format: 'visual_trust_cues',
-    visualDesignVariantId: 'privacy-controls-v4',
+    visualDesignVariantId: 'privacy-controls-v5',
     designAttributes: {
       colorway: 'charcoal, ivory, and periwinkle',
-      iconStyle: 'monoline control symbols',
-      density: 'balanced',
+      iconStyle: 'monoline control symbols with check markers',
+      density: 'spacious',
       sectionEmphasis: 'protections and participant control',
-      layout: 'stacked privacy commitment rows'
-    },
-    treatmentItems: sharedTreatmentItems
+      layout: 'vertical privacy control sections'
+    }
   },
   {
     id: 'transparency-flow',
     label: 'Transparency flow notice',
     format: 'visual_transparency_flow',
-    visualDesignVariantId: 'data-journey-v4',
+    visualDesignVariantId: 'data-journey-v5',
     designAttributes: {
       colorway: 'charcoal, ivory, periwinkle, and amber',
-      iconStyle: 'numbered pathway markers',
-      density: 'guided',
+      iconStyle: 'section symbols with pathway connectors',
+      density: 'spacious',
       sectionEmphasis: 'data journey and decision points',
       layout: 'vertical data-use pathway'
-    },
-    treatmentItems: sharedTreatmentItems
+    }
   }
 ];
 
@@ -121,13 +100,13 @@ const studySteps: StudyStep[] = [
   {
     id: 'study_intro',
     eyebrow: 'Welcome',
-    title: 'Review two privacy notices for a simulated OptBot Assistant service.',
+    title: 'Review two privacy notices for a simulated Optbot Assistant service.',
     prompt:
-      'OptBot Assistant is a simulated artificial intelligence (AI) service. This study asks how two presentations of the same model-improvement notice affect trust and understanding.',
+      'Optbot Assistant is a simulated artificial intelligence (AI) service. This study asks how two presentations of the same model-improvement notice affect trust and understanding.',
     kind: 'intro',
     highlights: [
       { label: 'Focus', value: 'Model-improvement notices' },
-      { label: 'Time', value: 'About 4-6 minutes' },
+      { label: 'Time', value: 'About 2-3 minutes' },
       { label: 'Data', value: 'Survey answers' }
     ]
   },
@@ -204,14 +183,14 @@ const studySteps: StudyStep[] = [
   },
   {
     id: 'notice_instructions',
-    eyebrow: 'Review Task',
-    title: 'Compare two versions of the same privacy notice.',
+    eyebrow: 'Review task',
+    title: 'Compare two layouts of the same privacy notice.',
     prompt:
-      'The notices describe a simulated OptBot Assistant service. Their order is set for this session. Pay attention to clarity, trust, completeness, and ease of use.',
+      'Notice A and Notice B contain the same terms in the same order. Their layouts differ, and their review order is set for this session.',
     kind: 'instructions',
     callouts: [
-      { label: 'Check what is shared', detail: 'Identify the session content covered by the choice.' },
-      { label: 'Check safeguards and limits', detail: 'Review filtering, retention, and deletion controls.' },
+      { label: 'Read every section', detail: 'Review what is shared, how Optbot uses it, and how long Optbot keeps it.' },
+      { label: 'Compare the layouts', detail: 'Consider readability, trust, completeness, and ease of use.' },
       { label: 'Choose one notice', detail: 'After both reviews, select Notice A or Notice B.' }
     ]
   },
@@ -333,24 +312,19 @@ const studySteps: StudyStep[] = [
   }
 ];
 
-function configureNoticeStep(
-  step: NoticeReviewStep,
-  slot: 'A' | 'B',
-  isFirst: boolean
-): NoticeReviewStep {
+function configureNoticeStep(step: NoticeReviewStep, isFirst: boolean): NoticeReviewStep {
+  const slot = step.noticeSurface === 'assigned' ? 'A' : 'B';
+
   return {
     ...step,
     eyebrow: `Notice ${slot}`,
     title: isFirst ? `Review privacy notice ${slot}.` : `Now review privacy notice ${slot}.`,
-    prompt: `Read Notice ${slot} carefully. Its identity remains the same through the comparison and preference question.`,
-    acknowledgementLabel: `I reviewed notice ${slot}`
+    prompt: `Read each section of Notice ${slot} before confirming your review.`,
+    acknowledgementLabel: `I reviewed Notice ${slot}`
   };
 }
 
-function configurePreferenceStep(
-  step: SingleChoiceStep,
-  order: NoticePresentationOrder
-): SingleChoiceStep {
+function configurePreferenceStep(step: SingleChoiceStep): SingleChoiceStep {
   const assignedChoice = step.choices.find((choice) => choice.id === 'prefer_assigned_notice');
   const referenceChoice = step.choices.find((choice) => choice.id === 'prefer_text_notice');
 
@@ -360,16 +334,10 @@ function configurePreferenceStep(
 
   return {
     ...step,
-    choices:
-      order === 'assigned-first'
-        ? [
-            { ...assignedChoice, label: 'Notice A' },
-            { ...referenceChoice, label: 'Notice B' }
-          ]
-        : [
-            { ...referenceChoice, label: 'Notice A' },
-            { ...assignedChoice, label: 'Notice B' }
-          ]
+    choices: [
+      { ...assignedChoice, label: 'Notice A' },
+      { ...referenceChoice, label: 'Notice B' }
+    ]
   };
 }
 
@@ -384,13 +352,11 @@ export function buildStudySteps(order: NoticePresentationOrder): StudyStep[] {
   const referenceStep = studySteps[referenceIndex] as NoticeReviewStep;
   const orderedNoticeSteps =
     order === 'assigned-first'
-      ? [configureNoticeStep(assignedStep, 'A', true), configureNoticeStep(referenceStep, 'B', false)]
-      : [configureNoticeStep(referenceStep, 'A', true), configureNoticeStep(assignedStep, 'B', false)];
+      ? [configureNoticeStep(assignedStep, true), configureNoticeStep(referenceStep, false)]
+      : [configureNoticeStep(referenceStep, true), configureNoticeStep(assignedStep, false)];
 
   const remainingSteps = studySteps.slice(referenceIndex + 1).map((step) =>
-    step.kind === 'single' && step.id === 'presentation_preference'
-      ? configurePreferenceStep(step, order)
-      : step
+    step.kind === 'single' && step.id === 'presentation_preference' ? configurePreferenceStep(step) : step
   );
 
   return [
