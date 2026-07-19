@@ -18,11 +18,13 @@ type NoticePresentationProps = {
   surface: NoticeSurface;
 };
 
+type NoticeIdentityIcon = 'file-text' | 'route' | 'shield';
+
 type NoticeIdentityBadgeProps = {
   variant: NoticeVariant;
   surface: NoticeSurface;
   slot: NoticeSlot;
-  icon?: 'shield';
+  icon?: NoticeIdentityIcon;
 };
 
 const sectionIcons: Record<NoticeSection['icon'], typeof Database> = {
@@ -33,6 +35,12 @@ const sectionIcons: Record<NoticeSection['icon'], typeof Database> = {
   sparkles: Sparkles,
   'file-text': FileText
 };
+const identityIcons: Record<NoticeIdentityIcon, typeof Database> = {
+  'file-text': FileText,
+  route: Route,
+  shield: ShieldCheck
+};
+
 
 export function NoticeIdentityBadge({ variant, surface, slot, icon }: NoticeIdentityBadgeProps) {
   const VariantIcon =
@@ -41,8 +49,8 @@ export function NoticeIdentityBadge({ variant, surface, slot, icon }: NoticeIden
       : variant.id === 'trust-cue-summary'
         ? ShieldCheck
         : Route;
-  const IdentityIcon = icon === 'shield' ? ShieldCheck : VariantIcon;
-  const showsIcon = icon === 'shield' || surface === 'assigned';
+  const IdentityIcon = icon ? identityIcons[icon] : VariantIcon;
+  const showsIcon = icon !== undefined || surface === 'assigned';
 
   return (
     <span className={`notice-identity-badge notice-identity-${slot.toLowerCase()}`} aria-label={`Notice ${slot}`}>
@@ -120,7 +128,12 @@ export function NoticePresentation({ variant, surface }: NoticePresentationProps
       aria-label={`Notice ${slot}`}
     >
       <div className="notice-identity-row">
-        <NoticeIdentityBadge variant={variant} surface={surface} slot={slot} />
+        <NoticeIdentityBadge
+          icon={isReference ? 'route' : undefined}
+          variant={variant}
+          surface={surface}
+          slot={slot}
+        />
       </div>
 
       <div className="notice-document">
