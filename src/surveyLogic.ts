@@ -1,5 +1,6 @@
 import type { ResponsePayload } from './schema';
 import { noticeVariants, surveyFlowVersion } from './studyContent';
+import { validateTextResponse } from './textValidation';
 import type {
   AnswerValue,
   NoticePresentationOrder,
@@ -99,7 +100,9 @@ export function getStepCompletion(
     case 'text-group': {
       const requiredQuestions = step.questions.filter((question) => question.required);
       return {
-        completed: requiredQuestions.filter((question) => isAnswerPresent(answers[question.id])).length,
+        completed: requiredQuestions.filter((question) =>
+          validateTextResponse(answers[question.id], question.minimumWords ?? 1).isValid
+        ).length,
         total: requiredQuestions.length
       };
     }
@@ -140,6 +143,8 @@ export function getStepValidationMessage(step: StudyStep, answers: SurveyAnswers
       return 'Please choose a 1-5 rating for each required item.';
     case 'single':
       return 'Please choose an answer before continuing.';
+    case 'text-group':
+      return 'Enter at least five substantive words for each required response.';
     default:
       return 'Please complete the required fields before continuing.';
   }

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { getNoticeSlot, getStepCompletion, reviewAcknowledgedValue, getChoiceAnswerValue } from '../surveyLogic';
+import { validateTextResponse } from '../textValidation';
 import type {
   AnswerValue,
   Choice,
@@ -8,6 +9,7 @@ import type {
   NoticePresentationOrder,
   NoticeSurface,
   NoticeVariant,
+  TextQuestion,
   StudyStep,
   SurveyAnswers
 } from '../types';
@@ -77,6 +79,59 @@ function ChoiceQuestionGroup({
   );
 }
 
+function TextQuestionField({
+  question,
+  answer,
+  onAnswer
+}: {
+  question: TextQuestion;
+  answer: AnswerValue | undefined;
+  onAnswer: (answerId: string, value: AnswerValue) => void;
+}) {
+  const value = typeof answer === 'string' ? answer : '';
+  const minimumWords = question.minimumWords ?? 1;
+  const validation = validateTextResponse(value, minimumWords);
+  const helperId = `${question.id}-helper`;
+  const statusId = `${question.id}-status`;
+  let statusMessage = `${validation.wordCount} of ${minimumWords} words`;
+
+  if (validation.isBlankEquivalent) {
+    statusMessage = 'Use a specific response; no-response phrases do not count.';
+  } else if (validation.wordCount > 0 && !validation.isValid) {
+    const remainingWords = minimumWords - validation.wordCount;
+    statusMessage = `${remainingWords} more ${remainingWords === 1 ? 'word' : 'words'} required`;
+  } else if (validation.isValid) {
+    statusMessage = `${validation.wordCount} words · Minimum met`;
+  }
+
+  return (
+    <div className="text-question">
+      <label htmlFor={question.id}>
+        <span>{question.label}</span>
+        {question.helperText ? <small id={helperId}>{question.helperText}</small> : null}
+      </label>
+      <textarea
+        aria-describedby={`${question.helperText ? helperId : ''} ${statusId}`.trim()}
+        aria-invalid={value.length > 0 && !validation.isValid}
+        autoComplete="off"
+        id={question.id}
+        maxLength={4000}
+        name={question.id}
+        onChange={(event) => onAnswer(question.id, event.target.value)}
+        required={question.required}
+        rows={4}
+        value={value}
+      />
+      <span
+        className={validation.isBlankEquivalent ? 'text-response-status invalid' : 'text-response-status'}
+        id={statusId}
+      >
+        {statusMessage}
+      </span>
+    </div>
+  );
+}
+
 function NoticeReview({
   step,
   answers,
@@ -134,11 +189,7 @@ export function StepRenderer({ step, answers, assignedVariant, noticeOrder, onAn
                 ? []
                 : choice.id === 'prefer_assigned_notice'
                   ? ['assigned']
-                  : choice.id === 'prefer_text_notice'
-                    ? ['reference-text']
-                    : choice.id === 'prefer_both_together'
-                      ? ['assigned', 'reference-text']
-                      : [];
+                  : ['reference-text'];
 
             return (
               <ChoiceButton
@@ -230,18 +281,12 @@ export function StepRenderer({ step, answers, assignedVariant, noticeOrder, onAn
       return (
         <div className="text-question-stack">
           {step.questions.map((question) => (
-            <label className="text-question" key={question.id}>
-              <span>{question.label}</span>
-              {question.helperText ? <small>{question.helperText}</small> : null}
-              <textarea
-                autoComplete="off"
-                name={question.id}
-                onChange={(event) => onAnswer(question.id, event.target.value)}
-                placeholder={question.placeholder}
-                rows={4}
-                value={typeof answers[question.id] === 'string' ? answers[question.id] : ''}
-              />
-            </label>
+            <TextQuestionField
+              answer={answers[question.id]}
+              key={question.id}
+              onAnswer={onAnswer}
+              question={question}
+            />
           ))}
         </div>
       );

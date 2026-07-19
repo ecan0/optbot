@@ -5,11 +5,15 @@ import type {
   NoticeSection,
   NoticeTreatmentItem,
   NoticeVariant,
+  SingleChoiceStep,
   StudyStep
 } from './types';
 
-export const surveyFlowVersion = 'privacy-notice-comparison-v3';
+export const surveyFlowVersion = 'privacy-notice-comparison-v4';
 export const consentVersion = 'ai-training-consent-v1';
+export const noticeHeadline = 'OptBot Assistant model-improvement notice';
+export const noticeSummary =
+  'Effective July 18, 2026. This notice explains what happens if you allow content from this session to be used to improve OptBot Assistant.';
 
 export const likertScale: LikertScaleChoice[] = [
   { id: '1', label: '1', shortLabel: '1', value: 1 },
@@ -22,48 +26,48 @@ export const likertScale: LikertScaleChoice[] = [
 export const referenceNoticeSections: NoticeSection[] = [
   {
     id: 'data_collected',
-    label: 'Information that may be used',
+    label: 'Content covered by this choice',
     icon: 'database',
     body:
-      'If you opt in, the example AI assistant may use prompts, uploaded content, chat interactions, feedback, and basic usage signals to improve future AI systems.'
+      'If you choose Share, OptBot Assistant sends the prompts, uploaded files, assistant replies, feedback, and technical event data from this session to its model-improvement program.'
   },
   {
     id: 'training_use',
-    label: 'How the information may be used',
+    label: 'How the content is used',
     icon: 'sparkles',
     body:
-      'Shared information may be reviewed, grouped with other participant data, and used to improve model responses, safety testing, and product quality.'
+      'Authorized research and engineering teams may review the content and use it to train, evaluate, and safety-test future models. The content is not used to personalize advertising.'
   },
   {
     id: 'privacy_protections',
-    label: 'Privacy protections',
+    label: 'Privacy safeguards and limits',
     icon: 'shield',
     body:
-      'The notice says personal information should be removed or separated where possible before content is used for training or evaluation.'
+      'Automated filters look for direct identifiers such as names, email addresses, phone numbers, and account IDs before training use. Some identifiers may remain, so sensitive information should not be submitted.'
   },
   {
     id: 'participant_control',
-    label: 'Participant control',
+    label: 'Retention and your controls',
     icon: 'trash',
     body:
-      'The notice says participation is voluntary and users should be able to decline data sharing or request deletion when the service provides that control.'
+      'You can decline sharing without losing access to the assistant. OptBot keeps source content for up to 90 days for review. You may submit a deletion request through the service privacy request form.'
   }
 ];
 
 const sharedTreatmentItems: NoticeTreatmentItem[] = [
   {
-    label: 'Optional AI interactions may be shared',
-    detail: 'Prompts, uploads, feedback, and interactions may be used to improve future AI systems.',
+    label: 'You choose whether this session is shared',
+    detail: 'OptBot includes prompts, files, replies, feedback, and technical event data only when you choose Share.',
     icon: 'lock'
   },
   {
-    label: 'Personal details separated where possible',
-    detail: 'Identifying details are removed or separated where possible before training or evaluation.',
+    label: 'Automated filters check direct identifiers before training use',
+    detail: 'The filters look for names, contact details, and account IDs, but some identifiers may remain.',
     icon: 'user-check'
   },
   {
-    label: 'Participation and deletion controls',
-    detail: 'Participation is voluntary, with decline and deletion controls where the service provides them.',
+    label: 'OptBot retains source content for up to 90 days',
+    detail: 'You can decline sharing without losing access, and you may request deletion through the service privacy form.',
     icon: 'trash'
   }
 ];
@@ -73,7 +77,7 @@ export const noticeVariants: NoticeVariant[] = [
     id: 'plain-text-control',
     label: 'Plain text consent notice',
     format: 'plain_text',
-    visualDesignVariantId: 'disclosure-ledger-v3',
+    visualDesignVariantId: 'disclosure-ledger-v4',
     designAttributes: {
       colorway: 'charcoal, ivory, and cool gray',
       iconStyle: 'none',
@@ -81,16 +85,13 @@ export const noticeVariants: NoticeVariant[] = [
       sectionEmphasis: 'full disclosure',
       layout: 'single-column consent ledger'
     },
-    headline: 'Data sharing for AI improvement',
-    summary:
-      'A traditional consent notice with the same information presented mostly as paragraphs and section headings.',
     treatmentItems: sharedTreatmentItems
   },
   {
     id: 'trust-cue-summary',
     label: 'Privacy cue summary',
     format: 'visual_trust_cues',
-    visualDesignVariantId: 'privacy-controls-v3',
+    visualDesignVariantId: 'privacy-controls-v4',
     designAttributes: {
       colorway: 'charcoal, ivory, and periwinkle',
       iconStyle: 'monoline control symbols',
@@ -98,16 +99,13 @@ export const noticeVariants: NoticeVariant[] = [
       sectionEmphasis: 'protections and participant control',
       layout: 'stacked privacy commitment rows'
     },
-    headline: 'Your privacy controls at a glance',
-    summary:
-      'A benefit-style notice that uses icons and short summary rows to highlight privacy protections.',
     treatmentItems: sharedTreatmentItems
   },
   {
     id: 'transparency-flow',
     label: 'Transparency flow notice',
     format: 'visual_transparency_flow',
-    visualDesignVariantId: 'data-journey-v3',
+    visualDesignVariantId: 'data-journey-v4',
     designAttributes: {
       colorway: 'charcoal, ivory, periwinkle, and amber',
       iconStyle: 'numbered pathway markers',
@@ -115,9 +113,6 @@ export const noticeVariants: NoticeVariant[] = [
       sectionEmphasis: 'data journey and decision points',
       layout: 'vertical data-use pathway'
     },
-    headline: 'See where shared data goes',
-    summary:
-      'A transparency-focused notice that shows the same decisions as a numbered pathway.',
     treatmentItems: sharedTreatmentItems
   }
 ];
@@ -126,14 +121,14 @@ const studySteps: StudyStep[] = [
   {
     id: 'study_intro',
     eyebrow: 'Welcome',
-    title: 'Review AI privacy notices as if you were enrolling in a service.',
+    title: 'Review two privacy notices for a simulated OptBot Assistant service.',
     prompt:
-      'This short study asks how different privacy notice presentations affect trust and understanding when deciding whether to share data for AI training.',
+      'OptBot Assistant is a simulated artificial intelligence (AI) service. This study asks how two presentations of the same model-improvement notice affect trust and understanding.',
     kind: 'intro',
     highlights: [
-      { label: 'Focus', value: 'AI consent notices' },
+      { label: 'Focus', value: 'Model-improvement notices' },
       { label: 'Time', value: 'About 4-6 minutes' },
-      { label: 'Data', value: 'Basic demographics only' }
+      { label: 'Data', value: 'Survey answers' }
     ]
   },
   {
@@ -210,14 +205,14 @@ const studySteps: StudyStep[] = [
   {
     id: 'notice_instructions',
     eyebrow: 'Review Task',
-    title: 'Compare the notice like a benefits plan summary.',
+    title: 'Compare two versions of the same privacy notice.',
     prompt:
-      'You will review one assigned privacy notice presentation and one standard text version with the same intent. Their order is set for this session. Pay attention to clarity, trust, completeness, and ease of use.',
+      'The notices describe a simulated OptBot Assistant service. Their order is set for this session. Pay attention to clarity, trust, completeness, and ease of use.',
     kind: 'instructions',
     callouts: [
-      { label: 'Look for data use', detail: 'What information may be shared and why it may be used.' },
-      { label: 'Look for protections', detail: 'How the notice describes privacy safeguards and control.' },
-      { label: 'Trust your reaction', detail: 'Answer based on how the presentation affects your confidence.' }
+      { label: 'Check what is shared', detail: 'Identify the session content covered by the choice.' },
+      { label: 'Check safeguards and limits', detail: 'Review filtering, retention, and deletion controls.' },
+      { label: 'Choose one notice', detail: 'After both reviews, select Notice A or Notice B.' }
     ]
   },
   {
@@ -245,30 +240,18 @@ const studySteps: StudyStep[] = [
   {
     id: 'presentation_preference',
     eyebrow: 'Preference',
-    title: 'Which notice presentation would you prefer before deciding whether to share data?',
-    prompt: 'Choose the option that would best support your decision.',
+    title: 'Which notice would you choose before deciding whether to share data?',
+    prompt: 'Choose Notice A or Notice B.',
     kind: 'single',
     required: true,
     choices: [
       {
         id: 'prefer_assigned_notice',
-        label: 'The assigned notice presentation',
-        detail: 'The assigned visual treatment helped me decide.'
+        label: 'Assigned notice'
       },
       {
         id: 'prefer_text_notice',
-        label: 'The text notice',
-        detail: 'The reference text helped me decide.'
-      },
-      {
-        id: 'prefer_both_together',
-        label: 'Both together',
-        detail: 'The combination would work best.'
-      },
-      {
-        id: 'prefer_not_sure',
-        label: 'Not sure',
-        detail: 'I do not have a clear preference.'
+        label: 'Reference notice'
       }
     ]
   },
@@ -326,20 +309,25 @@ const studySteps: StudyStep[] = [
   },
   {
     id: 'open_response',
-    eyebrow: 'Rationale',
-    title: 'Share any privacy concerns or missing information.',
-    prompt: 'These optional responses help explain the rating patterns in the study results.',
+    eyebrow: 'Feedback',
+    title: 'Explain your decision.',
+    prompt: 'Answer both questions in at least five words.',
     kind: 'text-group',
+    required: true,
     questions: [
       {
         id: 'concerns_influenced_decision',
         label: 'What concerns influenced your decision?',
-        placeholder: 'For example: data misuse, surveillance, unclear deletion, or ownership concerns…'
+        helperText: 'Required · 5 words minimum',
+        minimumWords: 5,
+        required: true
       },
       {
         id: 'information_increase_trust',
         label: 'What information would make you more willing to participate?',
-        placeholder: 'For example: clearer deletion controls, examples of data use, or proof of anonymization…'
+        helperText: 'Required · 5 words minimum',
+        minimumWords: 5,
+        required: true
       }
     ]
   }
@@ -350,17 +338,38 @@ function configureNoticeStep(
   slot: 'A' | 'B',
   isFirst: boolean
 ): NoticeReviewStep {
-  const isAssigned = step.noticeSurface === 'assigned';
-  const presentation = isAssigned ? 'assigned visual presentation' : 'reference text presentation';
-
   return {
     ...step,
     eyebrow: `Notice ${slot}`,
-    title: isFirst
-      ? `Review privacy notice ${slot}${isAssigned ? '' : ' as text'}.`
-      : `Now review privacy notice ${slot}${isAssigned ? '' : ' as text'}.`,
-    prompt: `This is the ${presentation}. Its Notice ${slot} identity remains the same through the comparison and preference question.`,
+    title: isFirst ? `Review privacy notice ${slot}.` : `Now review privacy notice ${slot}.`,
+    prompt: `Read Notice ${slot} carefully. Its identity remains the same through the comparison and preference question.`,
     acknowledgementLabel: `I reviewed notice ${slot}`
+  };
+}
+
+function configurePreferenceStep(
+  step: SingleChoiceStep,
+  order: NoticePresentationOrder
+): SingleChoiceStep {
+  const assignedChoice = step.choices.find((choice) => choice.id === 'prefer_assigned_notice');
+  const referenceChoice = step.choices.find((choice) => choice.id === 'prefer_text_notice');
+
+  if (!assignedChoice || !referenceChoice) {
+    throw new Error('Preference step must define assigned and reference notice choices.');
+  }
+
+  return {
+    ...step,
+    choices:
+      order === 'assigned-first'
+        ? [
+            { ...assignedChoice, label: 'Notice A' },
+            { ...referenceChoice, label: 'Notice B' }
+          ]
+        : [
+            { ...referenceChoice, label: 'Notice A' },
+            { ...assignedChoice, label: 'Notice B' }
+          ]
   };
 }
 
@@ -378,9 +387,15 @@ export function buildStudySteps(order: NoticePresentationOrder): StudyStep[] {
       ? [configureNoticeStep(assignedStep, 'A', true), configureNoticeStep(referenceStep, 'B', false)]
       : [configureNoticeStep(referenceStep, 'A', true), configureNoticeStep(assignedStep, 'B', false)];
 
+  const remainingSteps = studySteps.slice(referenceIndex + 1).map((step) =>
+    step.kind === 'single' && step.id === 'presentation_preference'
+      ? configurePreferenceStep(step, order)
+      : step
+  );
+
   return [
     ...studySteps.slice(0, assignedIndex),
     ...orderedNoticeSteps,
-    ...studySteps.slice(referenceIndex + 1)
+    ...remainingSteps
   ];
 }

@@ -76,6 +76,34 @@ describe('survey logic', () => {
     expect(isStepComplete(likertStep, { clarity_rating: 3 })).toBe(false);
   });
 
+  it('requires substantive five-word responses for both final prompts', () => {
+    const feedbackStep = studySteps.find((step) => step.id === 'open_response');
+    expect(feedbackStep?.kind).toBe('text-group');
+
+    if (feedbackStep?.kind !== 'text-group') {
+      throw new Error('Expected final feedback step');
+    }
+
+    expect(
+      getStepCompletion(feedbackStep, {
+        concerns_influenced_decision: 'Retention limits affected my final decision.',
+        information_increase_trust: 'none none none none none'
+      })
+    ).toEqual({ completed: 1, total: 2 });
+    expect(
+      isStepComplete(feedbackStep, {
+        concerns_influenced_decision: 'Retention limits affected my final decision.',
+        information_increase_trust: 'none none none none none'
+      })
+    ).toBe(false);
+    expect(
+      isStepComplete(feedbackStep, {
+        concerns_influenced_decision: 'Retention limits affected my final decision.',
+        information_increase_trust: 'A deletion deadline would increase my trust.'
+      })
+    ).toBe(true);
+  });
+
   it('requires notice review acknowledgements', () => {
     const reviewStep = studySteps.find((step) => step.id === 'visual_notice_review');
     expect(reviewStep?.kind).toBe('notice-review');
@@ -103,12 +131,14 @@ describe('survey logic', () => {
         participation_consent: 'consent_yes',
         visual_notice_review: reviewAcknowledgedValue,
         text_notice_review: reviewAcknowledgedValue,
-        presentation_preference: 'prefer_both_together',
+        presentation_preference: 'prefer_assigned_notice',
         clarity_rating: 4,
         trust_rating: 4,
         confidence_rating: 4,
         completeness_rating: 5,
-        ease_of_use_rating: 4
+        ease_of_use_rating: 4,
+        concerns_influenced_decision: 'Retention and deletion controls influenced my decision.',
+        information_increase_trust: 'A specific deletion deadline would increase trust.'
       },
       variant,
       noticeOrder: 'reference-first',
@@ -119,13 +149,13 @@ describe('survey logic', () => {
 
     expect(payload.variant_id).toBe('transparency-flow');
     expect(payload.metadata).toMatchObject({
-      survey_flow_version: 'privacy-notice-comparison-v3',
+      survey_flow_version: 'privacy-notice-comparison-v4',
       notice_presentation_order: 'reference-first',
       assigned_notice_slot: 'B',
       shown_notice_variant: {
         notice_variant_id: 'transparency-flow',
         notice_format: 'visual_transparency_flow',
-        visual_design_variant_id: 'data-journey-v3',
+        visual_design_variant_id: 'data-journey-v4',
         assignment_method: 'session-randomized-fixed'
       }
     });

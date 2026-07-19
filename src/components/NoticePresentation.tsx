@@ -9,7 +9,7 @@ import {
   Trash2,
   UserCheck
 } from 'lucide-react';
-import { referenceNoticeSections } from '../studyContent';
+import { noticeHeadline, noticeSummary, referenceNoticeSections } from '../studyContent';
 import { getNoticeSlot } from '../surveyLogic';
 import type {
   NoticeTreatmentItem,
@@ -68,7 +68,7 @@ export function NoticeIdentityBadge({ variant, surface, slot }: NoticeIdentityBa
 function DisclosureSections() {
   return (
     <div className="notice-disclosure">
-      <p className="notice-disclosure-label">Complete disclosure</p>
+      <p className="notice-disclosure-label">Full privacy notice</p>
       <ul className="notice-section-list">
         {referenceNoticeSections.map((section) => {
           const Icon = sectionIcons[section.icon];
@@ -167,23 +167,14 @@ export function NoticePresentation({ variant, surface, noticeOrder }: NoticePres
   return (
     <section
       className="notice-presentation"
-      aria-label={`Notice ${slot}: ${isReference ? 'reference text' : variant.label}`}
+      aria-label={`Notice ${slot}`}
     >
       <div className="notice-identity-row">
         <NoticeIdentityBadge variant={variant} surface={surface} slot={slot} />
-        <span>{isReference ? 'Reference text presentation' : 'Assigned visual presentation'}</span>
       </div>
 
       <div className={`notice-treatment ${treatmentClass}`}>
-        {isReference ? (
-          <NoticeHeading
-            eyebrow="Standard text notice"
-            headline="Example AI data sharing notice"
-            summary="This text notice describes optional sharing of AI interactions to improve future AI systems."
-          />
-        ) : (
-          <NoticeHeading eyebrow={variant.label} headline={variant.headline} summary={variant.summary} />
-        )}
+        <NoticeHeading eyebrow="Privacy notice" headline={noticeHeadline} summary={noticeSummary} />
 
         {!isReference && variant.id === 'plain-text-control' ? (
           <PlainTreatmentSummary items={variant.treatmentItems} />
