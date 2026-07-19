@@ -36,6 +36,10 @@ function App() {
   const canAdvance = isStepComplete(step, answers);
   const remainingRequired = stepCompletion.total - stepCompletion.completed;
   let primaryActionLabel = isLastStep ? 'Submit response' : 'Continue';
+  let incompleteMessage: string | null =
+    remainingRequired > 0
+      ? `${remainingRequired} required ${remainingRequired === 1 ? 'choice' : 'choices'} remaining`
+      : null;
 
   if (step.id === 'study_intro') {
     primaryActionLabel = 'Begin study';
@@ -46,6 +50,11 @@ function App() {
         : answers.participation_consent === 'consent_no'
           ? 'Confirm and exit'
           : 'Choose participation option';
+  } else if (step.id === 'presentation_preference' && !canAdvance) {
+    primaryActionLabel = 'Choose Notice A or Notice B';
+  } else if (step.kind === 'text-group' && !canAdvance) {
+    primaryActionLabel = 'Complete both responses';
+    incompleteMessage = `${remainingRequired} required ${remainingRequired === 1 ? 'response' : 'responses'} remaining`;
   } else if (!canAdvance) {
     primaryActionLabel =
       step.kind === 'notice-review' ? 'Review required notice' : 'Complete required choices';
@@ -140,11 +149,7 @@ function App() {
       isSubmitting={status === 'submitting'}
       onBack={() => setStepIndex((index) => Math.max(index - 1, 0))}
       onNext={handleNext}
-      incompleteMessage={
-        remainingRequired > 0
-          ? `${remainingRequired} required ${remainingRequired === 1 ? 'choice' : 'choices'} remaining`
-          : null
-      }
+      incompleteMessage={incompleteMessage}
       progress={progress}
       primaryActionLabel={primaryActionLabel}
       stepId={step.id}

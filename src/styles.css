@@ -737,7 +737,12 @@ input:focus-visible,
   border-top: 1px solid var(--border);
 }
 
-.text-question > span {
+.text-question label {
+  display: grid;
+  gap: 6px;
+}
+
+.text-question label > span {
   color: var(--ink);
   font-weight: 560;
 }
@@ -762,12 +767,27 @@ input:focus-visible,
   transition: background-color 150ms ease, border-color 150ms ease;
 }
 
-.text-question textarea::placeholder {
-  color: #77756f;
+.text-question textarea[aria-invalid='true'] {
+  border-color: var(--danger);
 }
+
+.text-response-status {
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-align: right;
+}
+
+.text-response-status.invalid {
+  color: var(--danger);
+}
+
 
 .text-question textarea:hover {
   border-color: var(--border-strong);
+}
+
+.text-question textarea[aria-invalid='true']:hover {
+  border-color: var(--danger);
 }
 
 .error-text {

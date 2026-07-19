@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildStudySteps, noticeVariants } from './studyContent';
+import { buildStudySteps, noticeHeadline, noticeSummary, noticeVariants, referenceNoticeSections } from './studyContent';
 
 const assignedFirstSteps = buildStudySteps('assigned-first');
 const referenceFirstSteps = buildStudySteps('reference-first');
@@ -30,6 +30,54 @@ describe('study content', () => {
     expect(referenceFirstSteps.filter((step) => step.kind !== 'notice-review').map((step) => step.id)).toEqual(
       assignedFirstSteps.filter((step) => step.kind !== 'notice-review').map((step) => step.id)
     );
+  });
+
+  it('shows exactly Notice A and Notice B while preserving semantic answer ids', () => {
+    const assignedFirstPreference = assignedFirstSteps.find((step) => step.id === 'presentation_preference');
+    const referenceFirstPreference = referenceFirstSteps.find((step) => step.id === 'presentation_preference');
+
+    expect(assignedFirstPreference?.kind).toBe('single');
+    expect(referenceFirstPreference?.kind).toBe('single');
+
+    if (assignedFirstPreference?.kind !== 'single' || referenceFirstPreference?.kind !== 'single') {
+      throw new Error('Expected preference steps');
+    }
+
+    expect(assignedFirstPreference.choices.map(({ id, label }) => ({ id, label }))).toEqual([
+      { id: 'prefer_assigned_notice', label: 'Notice A' },
+      { id: 'prefer_text_notice', label: 'Notice B' }
+    ]);
+    expect(referenceFirstPreference.choices.map(({ id, label }) => ({ id, label }))).toEqual([
+      { id: 'prefer_text_notice', label: 'Notice A' },
+      { id: 'prefer_assigned_notice', label: 'Notice B' }
+    ]);
+  });
+
+  it('requires two five-word final responses without placeholder examples', () => {
+    const feedbackStep = assignedFirstSteps.find((step) => step.id === 'open_response');
+    expect(feedbackStep?.kind).toBe('text-group');
+
+    if (feedbackStep?.kind !== 'text-group') {
+      throw new Error('Expected final feedback step');
+    }
+
+    expect(feedbackStep.required).toBe(true);
+    expect(feedbackStep.questions).toHaveLength(2);
+    expect(feedbackStep.questions.every((question) => question.required && question.minimumWords === 5)).toBe(true);
+    expect(feedbackStep.questions.every((question) => !('placeholder' in question))).toBe(true);
+  });
+
+  it('uses concrete shared notice copy without example language', () => {
+    const noticeCopy = [
+      noticeHeadline,
+      noticeSummary,
+      ...referenceNoticeSections.flatMap((section) => [section.label, section.body])
+    ].join(' ');
+
+    expect(noticeCopy).not.toMatch(/\bexample\b/i);
+    expect(noticeCopy).toContain('OptBot Assistant');
+    expect(noticeCopy).toContain('up to 90 days');
+    expect(noticeCopy).toContain('deletion request');
   });
 
   it('keeps required choice steps answerable', () => {
@@ -71,16 +119,16 @@ describe('study content', () => {
     ]);
   });
 
-  it('defines fixed notice variants with recorded v3 design metadata', () => {
+  it('defines fixed notice variants with recorded v4 design metadata', () => {
     expect(noticeVariants).toHaveLength(3);
 
     const ids = noticeVariants.map((variant) => variant.id);
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids).toEqual(['plain-text-control', 'trust-cue-summary', 'transparency-flow']);
     expect(noticeVariants.map((variant) => variant.visualDesignVariantId)).toEqual([
-      'disclosure-ledger-v3',
-      'privacy-controls-v3',
-      'data-journey-v3'
+      'disclosure-ledger-v4',
+      'privacy-controls-v4',
+      'data-journey-v4'
     ]);
     expect(noticeVariants.map((variant) => variant.treatmentItems)).toEqual([
       noticeVariants[0].treatmentItems,

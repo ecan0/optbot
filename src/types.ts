@@ -34,7 +34,7 @@ export type TextQuestion = {
   id: string;
   label: string;
   helperText?: string;
-  placeholder?: string;
+  minimumWords?: number;
   required?: boolean;
 };
 
@@ -106,7 +106,7 @@ export type NoticeVariantId = 'plain-text-control' | 'trust-cue-summary' | 'tran
 
 export type NoticeFormat = 'plain_text' | 'visual_trust_cues' | 'visual_transparency_flow';
 
-export type VisualDesignVariantId = 'disclosure-ledger-v3' | 'privacy-controls-v3' | 'data-journey-v3';
+export type VisualDesignVariantId = 'disclosure-ledger-v4' | 'privacy-controls-v4' | 'data-journey-v4';
 
 export type VisualDesignAttributes = {
   colorway: string;
@@ -135,8 +135,6 @@ export type NoticeVariant = {
   format: NoticeFormat;
   visualDesignVariantId: VisualDesignVariantId;
   designAttributes: VisualDesignAttributes;
-  headline: string;
-  summary: string;
   treatmentItems: NoticeTreatmentItem[];
 };
 
