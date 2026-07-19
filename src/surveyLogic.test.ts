@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildStudySteps, consentVersion, noticeVariants } from './studyContent';
+import { buildStudySteps, consentVersion, visualNoticeVariant } from './studyContent';
 import {
   assignNoticePresentationOrder,
   buildResponsePayload,
@@ -116,13 +116,7 @@ describe('survey logic', () => {
     expect(isStepComplete(reviewStep, { visual_notice_review: reviewAcknowledgedValue })).toBe(true);
   });
 
-  it('records the visual treatment, presentation order, and assigned slot', () => {
-    const variant = noticeVariants.find((noticeVariant) => noticeVariant.id === 'transparency-flow');
-    expect(variant).toBeTruthy();
-
-    if (!variant) {
-      throw new Error('Expected transparency variant');
-    }
+  it('records the fixed visual treatment, presentation order, and assigned slot', () => {
 
     const payload = buildResponsePayload({
       surveyId: 'optbot-study-v1',
@@ -140,23 +134,23 @@ describe('survey logic', () => {
         concerns_influenced_decision: 'Retention and deletion controls influenced my decision.',
         information_increase_trust: 'A specific deletion deadline would increase trust.'
       },
-      variant,
+      variant: visualNoticeVariant,
       noticeOrder: 'reference-first',
       startedAt: '2026-06-30T00:00:00.000Z',
       completedAt: '2026-06-30T00:02:00.000Z',
       userAgent: 'vitest'
     });
 
-    expect(payload.variant_id).toBe('transparency-flow');
+    expect(payload.variant_id).toBe('icon-led-disclosure');
     expect(payload.metadata).toMatchObject({
-      survey_flow_version: 'privacy-notice-comparison-v5',
+      survey_flow_version: 'paired-notice-attitudes-v0.6.5',
       notice_presentation_order: 'reference-first',
       assigned_notice_slot: 'A',
       shown_notice_variant: {
-        notice_variant_id: 'transparency-flow',
-        notice_format: 'visual_transparency_flow',
-        visual_design_variant_id: 'data-journey-v5',
-        assignment_method: 'session-randomized-fixed'
+        notice_variant_id: 'icon-led-disclosure',
+        notice_format: 'visual_disclosure_ledger',
+        visual_design_variant_id: 'disclosure-ledger-v5',
+        assignment_method: 'fixed-study-treatment'
       }
     });
   });

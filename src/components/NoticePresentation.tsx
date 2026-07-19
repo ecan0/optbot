@@ -43,13 +43,7 @@ const identityIcons: Record<NoticeIdentityIcon, typeof Database> = {
 
 
 export function NoticeIdentityBadge({ variant, surface, slot, icon }: NoticeIdentityBadgeProps) {
-  const VariantIcon =
-    variant.id === 'icon-led-disclosure'
-      ? LayoutList
-      : variant.id === 'trust-cue-summary'
-        ? ShieldCheck
-        : Route;
-  const IdentityIcon = icon ? identityIcons[icon] : VariantIcon;
+  const IdentityIcon = icon ? identityIcons[icon] : LayoutList;
   const showsIcon = icon !== undefined || surface === 'assigned';
 
   return (
@@ -60,9 +54,7 @@ export function NoticeIdentityBadge({ variant, surface, slot, icon }: NoticeIden
   );
 }
 
-function VisualDisclosureSections({ variant }: { variant: NoticeVariant }) {
-  const showControlMarker = variant.id === 'trust-cue-summary';
-
+function VisualDisclosureSections() {
   return (
     <ol className="notice-a-sections" aria-label="Notice A terms">
       {referenceNoticeSections.map((section, index) => {
@@ -73,7 +65,6 @@ function VisualDisclosureSections({ variant }: { variant: NoticeVariant }) {
             <span className="notice-a-section-cue" aria-hidden="true">
               <span className="notice-a-section-icon">
                 <Icon size={26} strokeWidth={1.7} />
-                {showControlMarker ? <Check className="notice-a-control-marker" size={13} strokeWidth={2.4} /> : null}
               </span>
               <span className="notice-a-section-index">{String(index + 1).padStart(2, '0')}</span>
             </span>
@@ -114,13 +105,7 @@ function NoticeHeading({ eyebrow, headline, summary }: { eyebrow?: string; headl
 export function NoticePresentation({ variant, surface }: NoticePresentationProps) {
   const slot = getNoticeSlot(surface);
   const isReference = surface === 'reference-text';
-  const treatmentClass = isReference
-    ? 'reference-treatment'
-    : variant.id === 'icon-led-disclosure'
-      ? 'disclosure-ledger-treatment'
-      : variant.id === 'trust-cue-summary'
-        ? 'privacy-controls-treatment'
-        : 'data-journey-treatment';
+  const treatmentClass = isReference ? 'reference-treatment' : 'disclosure-ledger-treatment';
 
   return (
     <section
@@ -142,7 +127,7 @@ export function NoticePresentation({ variant, surface }: NoticePresentationProps
           headline={noticeHeadline}
           summary={noticeSummary}
         />
-        {isReference ? <TextDisclosureSections /> : <VisualDisclosureSections variant={variant} />}
+        {isReference ? <TextDisclosureSections /> : <VisualDisclosureSections />}
       </div>
     </section>
   );

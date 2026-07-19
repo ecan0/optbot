@@ -3,10 +3,9 @@ import { submitResponse, type SubmitResult } from './api';
 import { CompletionScreen } from './components/CompletionScreen';
 import { StepRenderer } from './components/StepRenderer';
 import { SurveyFrame } from './components/SurveyFrame';
-import { buildStudySteps, consentVersion } from './studyContent';
+import { buildStudySteps, consentVersion, visualNoticeVariant } from './studyContent';
 import {
   assignNoticePresentationOrder,
-  assignNoticeVariant,
   buildResponsePayload,
   getStepCompletion,
   getStepValidationMessage,
@@ -25,7 +24,6 @@ function App() {
   const [status, setStatus] = useState<'idle' | 'submitting' | 'done'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [submitResult, setSubmitResult] = useState<SubmitResult | undefined>();
-  const assignedVariant = useMemo(() => assignNoticeVariant(sessionStorage, crypto), []);
   const noticeOrder = useMemo(() => assignNoticePresentationOrder(sessionStorage, crypto), []);
   const studySteps = useMemo(() => buildStudySteps(noticeOrder), [noticeOrder]);
   const step = studySteps[stepIndex];
@@ -78,7 +76,7 @@ function App() {
       surveyId,
       consentVersion,
       answers,
-      variant: assignedVariant,
+      variant: visualNoticeVariant,
       startedAt,
       noticeOrder,
       completedAt,
@@ -163,7 +161,7 @@ function App() {
       <div data-step-body key={step.id}>
         <StepRenderer
           answers={answers}
-          assignedVariant={assignedVariant}
+          assignedVariant={visualNoticeVariant}
           onAnswer={setAnswer}
           step={step}
         />

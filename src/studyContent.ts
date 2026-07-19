@@ -8,7 +8,7 @@ import type {
   StudyStep
 } from './types';
 
-export const surveyFlowVersion = 'privacy-notice-comparison-v5';
+export const surveyFlowVersion = 'paired-notice-attitudes-v0.6.5';
 export const consentVersion = 'ai-training-consent-v1';
 export const noticeHeadline = 'Optbot Assistant model-improvement notice';
 export const noticeSummary =
@@ -54,47 +54,19 @@ export const referenceNoticeSections: NoticeSection[] = [
 ];
 
 
-export const noticeVariants: NoticeVariant[] = [
-  {
-    id: 'icon-led-disclosure',
-    label: 'Icon-led disclosure',
-    format: 'visual_disclosure_ledger',
-    visualDesignVariantId: 'disclosure-ledger-v5',
-    designAttributes: {
-      colorway: 'charcoal, ivory, and periwinkle',
-      iconStyle: 'large monoline section symbols',
-      density: 'spacious',
-      sectionEmphasis: 'four equal disclosure sections',
-      layout: 'vertical icon-led disclosure'
-    }
-  },
-  {
-    id: 'trust-cue-summary',
-    label: 'Privacy cue summary',
-    format: 'visual_trust_cues',
-    visualDesignVariantId: 'privacy-controls-v5',
-    designAttributes: {
-      colorway: 'charcoal, ivory, and periwinkle',
-      iconStyle: 'monoline control symbols with check markers',
-      density: 'spacious',
-      sectionEmphasis: 'protections and participant control',
-      layout: 'vertical privacy control sections'
-    }
-  },
-  {
-    id: 'transparency-flow',
-    label: 'Transparency flow notice',
-    format: 'visual_transparency_flow',
-    visualDesignVariantId: 'data-journey-v5',
-    designAttributes: {
-      colorway: 'charcoal, ivory, periwinkle, and amber',
-      iconStyle: 'section symbols with pathway connectors',
-      density: 'spacious',
-      sectionEmphasis: 'data journey and decision points',
-      layout: 'vertical data-use pathway'
-    }
+export const visualNoticeVariant: NoticeVariant = {
+  id: 'icon-led-disclosure',
+  label: 'Icon-led disclosure',
+  format: 'visual_disclosure_ledger',
+  visualDesignVariantId: 'disclosure-ledger-v5',
+  designAttributes: {
+    colorway: 'charcoal, ivory, and periwinkle',
+    iconStyle: 'large monoline section symbols',
+    density: 'spacious',
+    sectionEmphasis: 'four equal disclosure sections',
+    layout: 'vertical icon-led disclosure'
   }
-];
+};
 
 const studySteps: StudyStep[] = [
   {

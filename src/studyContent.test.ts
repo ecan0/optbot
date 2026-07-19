@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { buildStudySteps, noticeHeadline, noticeSummary, noticeVariants, referenceNoticeSections } from './studyContent';
+import {
+  buildStudySteps,
+  noticeHeadline,
+  noticeSummary,
+  referenceNoticeSections,
+  visualNoticeVariant
+} from './studyContent';
 
 const assignedFirstSteps = buildStudySteps('assigned-first');
 const referenceFirstSteps = buildStudySteps('reference-first');
@@ -119,26 +125,18 @@ describe('study content', () => {
     ]);
   });
 
-  it('defines fixed notice variants with recorded v5 design metadata', () => {
-    expect(noticeVariants).toHaveLength(3);
-
-    const ids = noticeVariants.map((variant) => variant.id);
-    expect(new Set(ids).size).toBe(ids.length);
-    expect(ids).toEqual(['icon-led-disclosure', 'trust-cue-summary', 'transparency-flow']);
-    expect(noticeVariants.map((variant) => variant.visualDesignVariantId)).toEqual([
-      'disclosure-ledger-v5',
-      'privacy-controls-v5',
-      'data-journey-v5'
-    ]);
-
-    for (const variant of noticeVariants) {
-      expect(variant.designAttributes).toMatchObject({
+  it('defines one fixed visual treatment with recorded design metadata', () => {
+    expect(visualNoticeVariant).toMatchObject({
+      id: 'icon-led-disclosure',
+      format: 'visual_disclosure_ledger',
+      visualDesignVariantId: 'disclosure-ledger-v5',
+      designAttributes: {
         colorway: expect.any(String),
         iconStyle: expect.any(String),
         density: 'spacious',
         sectionEmphasis: expect.any(String),
         layout: expect.any(String)
-      });
-    }
+      }
+    });
   });
 });
