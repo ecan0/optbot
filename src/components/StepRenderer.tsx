@@ -43,7 +43,8 @@ function ChoiceButton({
       type="button"
       onClick={onSelect}
     >
-      {identity ?? <span className="choice-title">{choice.label}</span>}
+      {identity}
+      <span className="choice-title">{choice.label}</span>
       {choice.detail ? <span className="choice-detail">{choice.detail}</span> : null}
     </button>
   );
@@ -155,6 +156,7 @@ function NoticeReview({
           slot={getNoticeSlot(step.noticeSurface)}
           surface={step.noticeSurface}
           variant={assignedVariant}
+          icon={step.noticeSurface === 'reference-text' ? 'route' : undefined}
         />
         <span>{reviewed ? `Notice ${getNoticeSlot(step.noticeSurface)} reviewed` : step.acknowledgementLabel}</span>
       </button>
@@ -198,7 +200,7 @@ export function StepRenderer({ step, answers, assignedVariant, onAnswer }: StepR
                           slot={getNoticeSlot(surface)}
                           surface={surface}
                           variant={assignedVariant}
-                          icon="shield"
+                          icon={surface === 'assigned' ? 'file-text' : 'route'}
                         />
                       ))}
                     </span>
