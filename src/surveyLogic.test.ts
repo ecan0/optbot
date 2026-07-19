@@ -146,7 +146,7 @@ describe('survey logic', () => {
 
     expect(payload.variant_id).toBe('icon-led-disclosure');
     expect(payload.metadata).toMatchObject({
-      survey_flow_version: 'paired-notice-attitudes-v0.7.5',
+      survey_flow_version: 'paired-notice-attitudes-v0.8.0',
       study_design: 'within-participant-paired',
       primary_outcome: 'willingness_to_share',
       notice_presentation_order: 'reference-first',

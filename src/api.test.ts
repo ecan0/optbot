@@ -25,7 +25,7 @@ const validPayload: ResponsePayload = {
     decision_influence: 'Retention and deletion details influenced my decision.'
   },
   metadata: {
-    survey_flow_version: 'paired-notice-attitudes-v0.7.5',
+    survey_flow_version: 'paired-notice-attitudes-v0.8.0',
     study_design: 'within-participant-paired',
     primary_outcome: 'willingness_to_share',
     started_at: '2026-06-30T00:00:00.000Z',

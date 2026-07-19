@@ -81,6 +81,33 @@ describe('study content', () => {
     expect(feedbackStep.questions.every((question) => !('placeholder' in question))).toBe(true);
   });
 
+  it('describes the comparison without revealing the expected effect', () => {
+    const intro = assignedFirstSteps.find((step) => step.id === 'study_intro');
+    const instructions = assignedFirstSteps.find((step) => step.id === 'notice_instructions');
+
+    expect(intro?.prompt).toBe(
+      'Optbot Assistant is a simulated artificial intelligence (AI) service. This study asks how people respond to two presentations of the same model-improvement notice.'
+    );
+    expect(intro?.kind).toBe('intro');
+    if (intro?.kind === 'intro') {
+      expect(intro.highlights).toContainEqual({ label: 'Focus', value: 'Model-improvement privacy notices' });
+    }
+    expect(instructions?.prompt).toBe(
+      'Notice A and Notice B contain the same terms in the same order but differ in presentation. Their review order is set for this session.'
+    );
+  });
+
+  it('sets a realistic participant time expectation', () => {
+    const intro = assignedFirstSteps.find((step) => step.id === 'study_intro');
+    expect(intro?.kind).toBe('intro');
+
+    if (intro?.kind !== 'intro') {
+      throw new Error('Expected study introduction');
+    }
+
+    expect(intro.highlights).toContainEqual({ label: 'Time', value: 'About 3–5 minutes' });
+  });
+
   it('uses concrete shared notice copy without example language', () => {
     const noticeCopy = [
       noticeHeadline,

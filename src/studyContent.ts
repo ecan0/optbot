@@ -7,7 +7,7 @@ import type {
   StudyStep
 } from './types';
 
-export const surveyFlowVersion = 'paired-notice-attitudes-v0.7.5';
+export const surveyFlowVersion = 'paired-notice-attitudes-v0.8.0';
 export const consentVersion = 'ai-training-consent-v1';
 export const noticeHeadline = 'Optbot Assistant model-improvement notice';
 export const noticeSummary =
@@ -73,11 +73,11 @@ const studySteps: StudyStep[] = [
     eyebrow: 'Welcome',
     title: 'Review two privacy notices for a simulated Optbot Assistant service.',
     prompt:
-      'Optbot Assistant is a simulated artificial intelligence (AI) service. This study compares how text and visual cues affect attitudes toward sharing data for model improvement.',
+      'Optbot Assistant is a simulated artificial intelligence (AI) service. This study asks how people respond to two presentations of the same model-improvement notice.',
     kind: 'intro',
     highlights: [
-      { label: 'Focus', value: 'Text and visual privacy notices' },
-      { label: 'Time', value: 'About 3 minutes' },
+      { label: 'Focus', value: 'Model-improvement privacy notices' },
+      { label: 'Time', value: 'About 3–5 minutes' },
       { label: 'Data', value: 'Survey answers' }
     ]
   },
@@ -134,7 +134,7 @@ const studySteps: StudyStep[] = [
     eyebrow: 'Review task',
     title: 'Compare two presentations of the same privacy notice.',
     prompt:
-      'Notice A and Notice B contain the same terms in the same order. One uses visual cues and one uses plain text. Their review order is set for this session.',
+      'Notice A and Notice B contain the same terms in the same order but differ in presentation. Their review order is set for this session.',
     kind: 'instructions',
     callouts: [
       { label: 'Review a notice', detail: 'Read what is shared, how Optbot uses it, and how long Optbot keeps it.' },
