@@ -1,8 +1,8 @@
 import {
+  Check,
   Database,
   FileText,
-  LockKeyhole,
-  PanelTop,
+  LayoutList,
   Route,
   ShieldCheck,
   Sparkles,
@@ -11,25 +11,18 @@ import {
 } from 'lucide-react';
 import { noticeHeadline, noticeSummary, referenceNoticeSections } from '../studyContent';
 import { getNoticeSlot } from '../surveyLogic';
-import type {
-  NoticeTreatmentItem,
-  NoticePresentationOrder,
-  NoticeSection,
-  NoticeSlot,
-  NoticeSurface,
-  NoticeVariant
-} from '../types';
+import type { NoticeSection, NoticeSlot, NoticeSurface, NoticeVariant } from '../types';
 
 type NoticePresentationProps = {
   variant: NoticeVariant;
   surface: NoticeSurface;
-  noticeOrder: NoticePresentationOrder;
 };
 
 type NoticeIdentityBadgeProps = {
   variant: NoticeVariant;
   surface: NoticeSurface;
   slot: NoticeSlot;
+  icon?: 'shield';
 };
 
 const sectionIcons: Record<NoticeSection['icon'], typeof Database> = {
@@ -41,124 +34,81 @@ const sectionIcons: Record<NoticeSection['icon'], typeof Database> = {
   'file-text': FileText
 };
 
-const badgeIcons: Record<NoticeTreatmentItem['icon'], typeof Database> = {
-  lock: LockKeyhole,
-  'user-check': UserCheck,
-  trash: Trash2
-};
-
-export function NoticeIdentityBadge({ variant, surface, slot }: NoticeIdentityBadgeProps) {
-  const IdentityIcon =
-    surface === 'reference-text'
-      ? FileText
-      : variant.id === 'plain-text-control'
-        ? PanelTop
-        : variant.id === 'trust-cue-summary'
-          ? ShieldCheck
-          : Route;
+export function NoticeIdentityBadge({ variant, surface, slot, icon }: NoticeIdentityBadgeProps) {
+  const VariantIcon =
+    variant.id === 'icon-led-disclosure'
+      ? LayoutList
+      : variant.id === 'trust-cue-summary'
+        ? ShieldCheck
+        : Route;
+  const IdentityIcon = icon === 'shield' ? ShieldCheck : VariantIcon;
+  const showsIcon = icon === 'shield' || surface === 'assigned';
 
   return (
-    <span className="notice-identity-badge" aria-label={`Notice ${slot}`}>
-      <IdentityIcon aria-hidden="true" size={17} />
+    <span className={`notice-identity-badge notice-identity-${slot.toLowerCase()}`} aria-label={`Notice ${slot}`}>
+      {showsIcon ? <IdentityIcon aria-hidden="true" size={17} /> : null}
       <strong>Notice {slot}</strong>
     </span>
   );
 }
 
-function DisclosureSections() {
-  return (
-    <div className="notice-disclosure">
-      <p className="notice-disclosure-label">Full privacy notice</p>
-      <ul className="notice-section-list">
-        {referenceNoticeSections.map((section) => {
-          const Icon = sectionIcons[section.icon];
+function VisualDisclosureSections({ variant }: { variant: NoticeVariant }) {
+  const showControlMarker = variant.id === 'trust-cue-summary';
 
-          return (
-            <li className="notice-section-row" key={section.id}>
-              <span className="notice-section-icon" aria-hidden="true">
-                <Icon size={18} />
-              </span>
-              <span>
-                <strong>{section.label}</strong>
-                <span>{section.body}</span>
-              </span>
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  );
-}
-
-function PlainTreatmentSummary({ items }: { items: NoticeTreatmentItem[] }) {
   return (
-    <ul className="plain-treatment-summary" aria-label="Notice summary">
-      {items.map((item) => (
-        <li key={item.label}>
-          <strong>{item.label}</strong>
-          <small>{item.detail}</small>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function PrivacyCommitments({ items }: { items: NoticeTreatmentItem[] }) {
-  return (
-    <ul className="privacy-commitments" aria-label="Privacy commitments">
-      {items.map((item) => {
-        const Icon = badgeIcons[item.icon];
+    <ol className="notice-a-sections" aria-label="Notice A terms">
+      {referenceNoticeSections.map((section, index) => {
+        const Icon = sectionIcons[section.icon];
 
         return (
-          <li key={item.label}>
-            <span aria-hidden="true">
-              <Icon size={18} />
+          <li key={section.id}>
+            <span className="notice-a-section-cue" aria-hidden="true">
+              <span className="notice-a-section-icon">
+                <Icon size={26} strokeWidth={1.7} />
+                {showControlMarker ? <Check className="notice-a-control-marker" size={13} strokeWidth={2.4} /> : null}
+              </span>
+              <span className="notice-a-section-index">{String(index + 1).padStart(2, '0')}</span>
             </span>
-            <span>
-              <strong>{item.label}</strong>
-              <small>{item.detail}</small>
+            <span className="notice-a-section-copy">
+              <h3>{section.label}</h3>
+              <p>{section.body}</p>
             </span>
           </li>
         );
       })}
-    </ul>
-  );
-}
-
-function DataJourney({ items }: { items: NoticeTreatmentItem[] }) {
-  return (
-    <ol className="data-journey" aria-label="Data use pathway">
-      {items.map((item, index) => (
-        <li key={item.label}>
-          <span className="flow-index" aria-hidden="true">
-            {String(index + 1).padStart(2, '0')}
-          </span>
-          <span>
-            <strong>{item.label}</strong>
-            <small>{item.detail}</small>
-          </span>
-        </li>
-      ))}
     </ol>
   );
 }
 
-function NoticeHeading({ eyebrow, headline, summary }: { eyebrow: string; headline: string; summary: string }) {
+function TextDisclosureSections() {
+  return (
+    <div className="notice-b-sections" aria-label="Notice B terms">
+      {referenceNoticeSections.map((section) => (
+        <section key={section.id}>
+          <h3>{section.label}</h3>
+          <p>{section.body}</p>
+        </section>
+      ))}
+    </div>
+  );
+}
+
+function NoticeHeading({ eyebrow, headline, summary }: { eyebrow?: string; headline: string; summary: string }) {
   return (
     <div className="notice-heading">
-      <span>{eyebrow}</span>
+      {eyebrow ? <span>{eyebrow}</span> : null}
       <h2>{headline}</h2>
       <p>{summary}</p>
     </div>
   );
 }
 
-export function NoticePresentation({ variant, surface, noticeOrder }: NoticePresentationProps) {
-  const slot = getNoticeSlot(surface, noticeOrder);
+export function NoticePresentation({ variant, surface }: NoticePresentationProps) {
+  const slot = getNoticeSlot(surface);
   const isReference = surface === 'reference-text';
   const treatmentClass = isReference
     ? 'reference-treatment'
-    : variant.id === 'plain-text-control'
+    : variant.id === 'icon-led-disclosure'
       ? 'disclosure-ledger-treatment'
       : variant.id === 'trust-cue-summary'
         ? 'privacy-controls-treatment'
@@ -166,28 +116,21 @@ export function NoticePresentation({ variant, surface, noticeOrder }: NoticePres
 
   return (
     <section
-      className="notice-presentation"
+      className={`notice-presentation notice-${slot.toLowerCase()} ${treatmentClass}`}
       aria-label={`Notice ${slot}`}
     >
       <div className="notice-identity-row">
         <NoticeIdentityBadge variant={variant} surface={surface} slot={slot} />
       </div>
 
-      <div className={`notice-treatment ${treatmentClass}`}>
-        <NoticeHeading eyebrow="Privacy notice" headline={noticeHeadline} summary={noticeSummary} />
-
-        {!isReference && variant.id === 'plain-text-control' ? (
-          <PlainTreatmentSummary items={variant.treatmentItems} />
-        ) : null}
-        {!isReference && variant.id === 'trust-cue-summary' ? (
-          <PrivacyCommitments items={variant.treatmentItems} />
-        ) : null}
-        {!isReference && variant.id === 'transparency-flow' ? (
-          <DataJourney items={variant.treatmentItems} />
-        ) : null}
+      <div className="notice-document">
+        <NoticeHeading
+          eyebrow={isReference ? undefined : 'Privacy notice'}
+          headline={noticeHeadline}
+          summary={noticeSummary}
+        />
+        {isReference ? <TextDisclosureSections /> : <VisualDisclosureSections variant={variant} />}
       </div>
-
-      <DisclosureSections />
     </section>
   );
 }

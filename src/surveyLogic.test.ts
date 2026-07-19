@@ -48,8 +48,8 @@ describe('survey logic', () => {
 
     expect(assignNoticePresentationOrder(store, referenceFirstCrypto)).toBe('reference-first');
     expect(assignNoticePresentationOrder(store, assignedFirstCrypto)).toBe('reference-first');
-    expect(getNoticeSlot('reference-text', 'reference-first')).toBe('A');
-    expect(getNoticeSlot('assigned', 'reference-first')).toBe('B');
+    expect(getNoticeSlot('reference-text')).toBe('B');
+    expect(getNoticeSlot('assigned')).toBe('A');
   });
 
   it('reports and validates required grouped-answer progress', () => {
@@ -149,13 +149,13 @@ describe('survey logic', () => {
 
     expect(payload.variant_id).toBe('transparency-flow');
     expect(payload.metadata).toMatchObject({
-      survey_flow_version: 'privacy-notice-comparison-v4',
+      survey_flow_version: 'privacy-notice-comparison-v5',
       notice_presentation_order: 'reference-first',
-      assigned_notice_slot: 'B',
+      assigned_notice_slot: 'A',
       shown_notice_variant: {
         notice_variant_id: 'transparency-flow',
         notice_format: 'visual_transparency_flow',
-        visual_design_variant_id: 'data-journey-v4',
+        visual_design_variant_id: 'data-journey-v5',
         assignment_method: 'session-randomized-fixed'
       }
     });

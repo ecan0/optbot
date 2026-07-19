@@ -19,7 +19,7 @@ export function CompletionScreen({ result, participationDeclined, onDownload }: 
             <ShieldCheck size={21} />
           </span>
           <span className="brand-copy">
-            <strong>OptBot</strong>
+            <strong>Optbot</strong>
             <small>Privacy notice study</small>
           </span>
         </div>
