@@ -7,7 +7,7 @@ import type {
   StudyStep
 } from './types';
 
-export const surveyFlowVersion = 'paired-notice-attitudes-v0.7.0';
+export const surveyFlowVersion = 'paired-notice-attitudes-v0.7.5';
 export const consentVersion = 'ai-training-consent-v1';
 export const noticeHeadline = 'Optbot Assistant model-improvement notice';
 export const noticeSummary =
@@ -174,16 +174,16 @@ const studySteps: StudyStep[] = [
         highLabel: 'High trust'
       },
       {
-        id: 'visual_understanding',
-        label: 'I understood what data would be collected and how it would be used.',
-        lowLabel: 'Not clear',
-        highLabel: 'Very clear'
+        id: 'visual_completeness',
+        label: 'This notice included enough information for me to make a decision.',
+        lowLabel: 'Incomplete',
+        highLabel: 'Complete'
       },
       {
-        id: 'visual_privacy_concern',
-        label: 'I would be concerned about my privacy if I accepted this notice.',
-        lowLabel: 'Not concerned',
-        highLabel: 'Very concerned'
+        id: 'visual_ease_of_use',
+        label: 'This notice was easy to scan and use.',
+        lowLabel: 'Difficult',
+        highLabel: 'Easy'
       }
     ]
   },
@@ -219,16 +219,16 @@ const studySteps: StudyStep[] = [
         highLabel: 'High trust'
       },
       {
-        id: 'text_understanding',
-        label: 'I understood what data would be collected and how it would be used.',
-        lowLabel: 'Not clear',
-        highLabel: 'Very clear'
+        id: 'text_completeness',
+        label: 'This notice included enough information for me to make a decision.',
+        lowLabel: 'Incomplete',
+        highLabel: 'Complete'
       },
       {
-        id: 'text_privacy_concern',
-        label: 'I would be concerned about my privacy if I accepted this notice.',
-        lowLabel: 'Not concerned',
-        highLabel: 'Very concerned'
+        id: 'text_ease_of_use',
+        label: 'This notice was easy to scan and use.',
+        lowLabel: 'Difficult',
+        highLabel: 'Easy'
       }
     ]
   },
@@ -242,22 +242,29 @@ const studySteps: StudyStep[] = [
     choices: [
       {
         id: 'prefer_visual_notice',
-        label: 'Notice A'
+        label: 'Visual presentation'
       },
       {
         id: 'prefer_text_notice',
-        label: 'Notice B'
+        label: 'Plain-text presentation'
       }
     ]
   },
   {
     id: 'open_response',
-    eyebrow: 'Feedback',
-    title: 'Briefly explain your decision.',
-    prompt: 'Answer in at least five words.',
+    eyebrow: 'Interview Responses',
+    title: 'Describe your reactions.',
+    prompt: 'Use your own words. Answer both questions in at least five words each.',
     kind: 'text-group',
     required: true,
     questions: [
+      {
+        id: 'notice_descriptions',
+        label: 'What words or short phrases would you use to describe Notice A and Notice B?',
+        helperText: 'Mention both notices · Required · 5 words minimum',
+        minimumWords: 5,
+        required: true
+      },
       {
         id: 'decision_influence',
         label: 'What most influenced your willingness or unwillingness to share?',

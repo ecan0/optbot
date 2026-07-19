@@ -1,5 +1,4 @@
 import {
-  Check,
   Database,
   FileText,
   LayoutList,
@@ -11,17 +10,15 @@ import {
 } from 'lucide-react';
 import { noticeHeadline, noticeSummary, referenceNoticeSections } from '../studyContent';
 import { getNoticeSlot } from '../surveyLogic';
-import type { NoticeSection, NoticeSlot, NoticeSurface, NoticeVariant } from '../types';
+import type { NoticeSection, NoticeSlot, NoticeSurface } from '../types';
 
 type NoticePresentationProps = {
-  variant: NoticeVariant;
   surface: NoticeSurface;
 };
 
 type NoticeIdentityIcon = 'file-text' | 'route' | 'shield';
 
 type NoticeIdentityBadgeProps = {
-  variant: NoticeVariant;
   surface: NoticeSurface;
   slot: NoticeSlot;
   icon?: NoticeIdentityIcon;
@@ -42,7 +39,7 @@ const identityIcons: Record<NoticeIdentityIcon, typeof Database> = {
 };
 
 
-export function NoticeIdentityBadge({ variant, surface, slot, icon }: NoticeIdentityBadgeProps) {
+export function NoticeIdentityBadge({ surface, slot, icon }: NoticeIdentityBadgeProps) {
   const IdentityIcon = icon ? identityIcons[icon] : LayoutList;
   const showsIcon = icon !== undefined || surface === 'assigned';
 
@@ -102,7 +99,7 @@ function NoticeHeading({ eyebrow, headline, summary }: { eyebrow?: string; headl
   );
 }
 
-export function NoticePresentation({ variant, surface }: NoticePresentationProps) {
+export function NoticePresentation({ surface }: NoticePresentationProps) {
   const slot = getNoticeSlot(surface);
   const isReference = surface === 'reference-text';
   const treatmentClass = isReference ? 'reference-treatment' : 'disclosure-ledger-treatment';
@@ -115,7 +112,6 @@ export function NoticePresentation({ variant, surface }: NoticePresentationProps
       <div className="notice-identity-row">
         <NoticeIdentityBadge
           icon={isReference ? 'route' : undefined}
-          variant={variant}
           surface={surface}
           slot={slot}
         />

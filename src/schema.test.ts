@@ -7,21 +7,26 @@ const validPayload = {
   consent_version: 'ai-training-consent-v1',
   answers: {
     participation_consent: 'consent_yes',
+    age_range: '25_34',
+    ai_usage_frequency: 'weekly',
     presentation_preference: 'prefer_visual_notice',
     visual_notice_review: 'reviewed',
     text_notice_review: 'reviewed',
     visual_willingness: 4,
     visual_trust: 4,
-    visual_understanding: 5,
-    visual_privacy_concern: 3,
+    visual_completeness: 5,
+    visual_ease_of_use: 3,
     text_willingness: 3,
     text_trust: 3,
-    text_understanding: 4,
-    text_privacy_concern: 4,
+    text_completeness: 4,
+    text_ease_of_use: 4,
+    notice_descriptions: 'Notice A felt visual while Notice B felt dense.',
     decision_influence: 'Clear retention tradeoffs most influenced my decision.'
   },
   metadata: {
-    survey_flow_version: 'paired-notice-attitudes-v0.7.0',
+    survey_flow_version: 'paired-notice-attitudes-v0.7.5',
+    study_design: 'within-participant-paired',
+    primary_outcome: 'willingness_to_share',
     started_at: '2026-06-30T00:00:00.000Z',
     completed_at: '2026-06-30T00:02:00.000Z',
     user_agent: 'vitest',
@@ -120,6 +125,18 @@ describe('responsePayloadSchema', () => {
       })
     ).toThrow('Choose a rating from 1 to 5.');
   });
+
+  it.each(['participation_consent', 'age_range', 'ai_usage_frequency', 'visual_notice_review', 'text_notice_review'])(
+    'requires structured answer: %s',
+    (answerId) => {
+      const answers = { ...validPayload.answers };
+      delete answers[answerId as keyof typeof answers];
+
+      expect(() => responsePayloadSchema.parse({ ...validPayload, answers })).toThrow(
+        'Complete every required study question.'
+      );
+    }
+  );
 
   it('requires shown notice variant metadata', () => {
     expect(() =>

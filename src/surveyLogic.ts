@@ -1,5 +1,5 @@
 import type { ResponsePayload } from './schema';
-import { surveyFlowVersion } from './studyContent';
+import { consentVersion, surveyFlowVersion } from './studyContent';
 import { validateTextResponse } from './textValidation';
 import type {
   AnswerValue,
@@ -141,7 +141,7 @@ export function createShownNoticeVariantMetadata(variant: NoticeVariant): Respon
 
 export function buildResponsePayload(args: {
   surveyId: string;
-  consentVersion: string;
+  consentVersion: typeof consentVersion;
   answers: SurveyAnswers;
   variant: NoticeVariant;
   noticeOrder: NoticePresentationOrder;
@@ -156,6 +156,8 @@ export function buildResponsePayload(args: {
     answers: args.answers,
     metadata: {
       survey_flow_version: surveyFlowVersion,
+      study_design: 'within-participant-paired',
+      primary_outcome: 'willingness_to_share',
       started_at: args.startedAt,
       completed_at: args.completedAt,
       user_agent: args.userAgent,

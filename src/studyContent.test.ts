@@ -36,7 +36,7 @@ describe('study content', () => {
     ]);
   });
 
-  it('shows exactly Notice A and Notice B while preserving semantic answer ids', () => {
+  it('labels the preference options by presentation while preserving semantic answer ids', () => {
     const assignedFirstPreference = assignedFirstSteps.find((step) => step.id === 'presentation_preference');
     const referenceFirstPreference = referenceFirstSteps.find((step) => step.id === 'presentation_preference');
 
@@ -48,16 +48,16 @@ describe('study content', () => {
     }
 
     expect(assignedFirstPreference.choices.map(({ id, label }) => ({ id, label }))).toEqual([
-      { id: 'prefer_visual_notice', label: 'Notice A' },
-      { id: 'prefer_text_notice', label: 'Notice B' }
+      { id: 'prefer_visual_notice', label: 'Visual presentation' },
+      { id: 'prefer_text_notice', label: 'Plain-text presentation' }
     ]);
     expect(referenceFirstPreference.choices.map(({ id, label }) => ({ id, label }))).toEqual([
-      { id: 'prefer_visual_notice', label: 'Notice A' },
-      { id: 'prefer_text_notice', label: 'Notice B' }
+      { id: 'prefer_visual_notice', label: 'Visual presentation' },
+      { id: 'prefer_text_notice', label: 'Plain-text presentation' }
     ]);
   });
 
-  it('requires one focused five-word response without placeholder examples', () => {
+  it('requires two focused interview responses without placeholder examples', () => {
     const feedbackStep = assignedFirstSteps.find((step) => step.id === 'open_response');
     expect(feedbackStep?.kind).toBe('text-group');
 
@@ -67,6 +67,11 @@ describe('study content', () => {
 
     expect(feedbackStep.required).toBe(true);
     expect(feedbackStep.questions).toEqual([
+      expect.objectContaining({
+        id: 'notice_descriptions',
+        required: true,
+        minimumWords: 5
+      }),
       expect.objectContaining({
         id: 'decision_influence',
         required: true,
@@ -119,11 +124,11 @@ describe('study content', () => {
     expect(ratingSteps.map((step) => [step.id, step.questions.map((question) => question.id)])).toEqual([
       [
         'visual_notice_attitudes',
-        ['visual_willingness', 'visual_trust', 'visual_understanding', 'visual_privacy_concern']
+        ['visual_willingness', 'visual_trust', 'visual_completeness', 'visual_ease_of_use']
       ],
       [
         'text_notice_attitudes',
-        ['text_willingness', 'text_trust', 'text_understanding', 'text_privacy_concern']
+        ['text_willingness', 'text_trust', 'text_completeness', 'text_ease_of_use']
       ]
     ]);
   });

@@ -76,7 +76,7 @@ describe('survey logic', () => {
     expect(isStepComplete(likertStep, { visual_willingness: 3 })).toBe(false);
   });
 
-  it('requires one substantive five-word final response', () => {
+  it('requires two substantive five-word interview responses', () => {
     const feedbackStep = studySteps.find((step) => step.id === 'open_response');
     expect(feedbackStep?.kind).toBe('text-group');
 
@@ -84,13 +84,21 @@ describe('survey logic', () => {
       throw new Error('Expected final feedback step');
     }
 
-    expect(getStepCompletion(feedbackStep, { decision_influence: 'none none none none none' })).toEqual({
-      completed: 0,
-      total: 1
-    });
-    expect(isStepComplete(feedbackStep, { decision_influence: 'none none none none none' })).toBe(false);
+    expect(
+      getStepCompletion(feedbackStep, {
+        notice_descriptions: 'Visual and clear versus plain text.',
+        decision_influence: 'none none none none none'
+      })
+    ).toEqual({ completed: 1, total: 2 });
     expect(
       isStepComplete(feedbackStep, {
+        notice_descriptions: 'Visual and clear versus plain text.',
+        decision_influence: 'none none none none none'
+      })
+    ).toBe(false);
+    expect(
+      isStepComplete(feedbackStep, {
+        notice_descriptions: 'Notice A felt visual; Notice B felt plain.',
         decision_influence: 'Retention limits affected my final decision.'
       })
     ).toBe(true);
@@ -120,12 +128,13 @@ describe('survey logic', () => {
         presentation_preference: 'prefer_visual_notice',
         visual_willingness: 4,
         visual_trust: 4,
-        visual_understanding: 4,
-        visual_privacy_concern: 3,
+        visual_completeness: 4,
+        visual_ease_of_use: 3,
         text_willingness: 3,
         text_trust: 3,
-        text_understanding: 4,
-        text_privacy_concern: 4,
+        text_completeness: 4,
+        text_ease_of_use: 4,
+        notice_descriptions: 'Notice A felt scannable while Notice B felt dense.',
         decision_influence: 'Retention and deletion controls influenced my decision.'
       },
       variant: visualNoticeVariant,
@@ -137,7 +146,9 @@ describe('survey logic', () => {
 
     expect(payload.variant_id).toBe('icon-led-disclosure');
     expect(payload.metadata).toMatchObject({
-      survey_flow_version: 'paired-notice-attitudes-v0.7.0',
+      survey_flow_version: 'paired-notice-attitudes-v0.7.5',
+      study_design: 'within-participant-paired',
+      primary_outcome: 'willingness_to_share',
       notice_presentation_order: 'reference-first',
       assigned_notice_slot: 'A',
       shown_notice_variant: {

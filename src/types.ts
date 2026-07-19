@@ -134,6 +134,8 @@ export type NoticeVariant = {
 
 export type ParticipantMetadata = {
   survey_flow_version: string;
+  study_design: 'within-participant-paired';
+  primary_outcome: 'willingness_to_share';
   started_at: string;
   completed_at: string;
   user_agent?: string;

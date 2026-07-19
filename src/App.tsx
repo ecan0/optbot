@@ -51,7 +51,7 @@ function App() {
   } else if (step.id === 'presentation_preference' && !canAdvance) {
     primaryActionLabel = 'Choose Notice A or Notice B';
   } else if (step.kind === 'text-group' && !canAdvance) {
-    primaryActionLabel = 'Complete both responses';
+    primaryActionLabel = remainingRequired === 1 ? 'Complete required response' : 'Complete required responses';
     incompleteMessage = `${remainingRequired} required ${remainingRequired === 1 ? 'response' : 'responses'} remaining`;
   } else if (!canAdvance) {
     primaryActionLabel =
@@ -161,7 +161,6 @@ function App() {
       <div data-step-body key={step.id}>
         <StepRenderer
           answers={answers}
-          assignedVariant={visualNoticeVariant}
           onAnswer={setAnswer}
           step={step}
         />

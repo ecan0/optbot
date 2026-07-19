@@ -10,21 +10,40 @@ export const visualDesignAttributesSchema = z.object({
 });
 
 const answerValueSchema = z.union([z.string().max(4000), z.number().finite()]);
-const requiredTextResponseIds = ['decision_influence'] as const;
+const requiredTextResponseIds = ['notice_descriptions', 'decision_influence'] as const;
 
 const requiredRatingIds = [
   'visual_willingness',
   'visual_trust',
-  'visual_understanding',
-  'visual_privacy_concern',
+  'visual_completeness',
+  'visual_ease_of_use',
   'text_willingness',
   'text_trust',
-  'text_understanding',
-  'text_privacy_concern'
+  'text_completeness',
+  'text_ease_of_use'
 ] as const;
+
+const requiredChoiceEntries: ReadonlyArray<readonly [string, readonly string[]]> = [
+  ['participation_consent', ['consent_yes']],
+  ['age_range', ['18_24', '25_34', '35_44', '45_54', '55_65', 'prefer_not_age']],
+  ['ai_usage_frequency', ['rarely', 'monthly', 'weekly', 'daily']],
+  ['visual_notice_review', ['reviewed']],
+  ['text_notice_review', ['reviewed']]
+];
 
 
 const answersSchema = z.record(z.string(), answerValueSchema).superRefine((answers, context) => {
+  for (const [answerId, allowedValues] of requiredChoiceEntries) {
+    const answer = answers[answerId];
+    if (typeof answer !== 'string' || !allowedValues.includes(answer)) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Complete every required study question.',
+        path: [answerId]
+      });
+    }
+  }
+
   if (
     answers.presentation_preference !== 'prefer_visual_notice' &&
     answers.presentation_preference !== 'prefer_text_notice'
@@ -70,11 +89,13 @@ export const shownNoticeVariantSchema = z.object({
 
 export const responsePayloadSchema = z.object({
   survey_id: z.string().min(1).max(120),
-  variant_id: z.string().min(1).max(120),
-  consent_version: z.string().min(1).max(120),
+  variant_id: z.literal('icon-led-disclosure'),
+  consent_version: z.literal('ai-training-consent-v1'),
   answers: answersSchema,
   metadata: z.object({
-    survey_flow_version: z.string().min(1).max(120),
+    survey_flow_version: z.literal('paired-notice-attitudes-v0.7.5'),
+    study_design: z.literal('within-participant-paired'),
+    primary_outcome: z.literal('willingness_to_share'),
     started_at: z.string().datetime(),
     completed_at: z.string().datetime(),
     user_agent: z.string().max(500).optional(),
