@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { submitResponse, type SubmitResult } from './api';
 import { CompletionScreen } from './components/CompletionScreen';
+import { TurnstileWidget } from './components/TurnstileWidget';
 import { StepRenderer } from './components/StepRenderer';
 import { SurveyFrame } from './components/SurveyFrame';
+import { publicRuntimeConfig } from './config';
 import { buildStudySteps, consentVersion, visualNoticeVariant } from './studyContent';
 import {
   assignNoticePresentationOrder,
@@ -24,11 +26,15 @@ function App() {
   const [status, setStatus] = useState<'idle' | 'submitting' | 'done'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [submitResult, setSubmitResult] = useState<SubmitResult | undefined>();
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileResetSignal, setTurnstileResetSignal] = useState(0);
+  const submitInFlight = useRef(false);
   const noticeOrder = useMemo(() => assignNoticePresentationOrder(sessionStorage, crypto), []);
   const studySteps = useMemo(() => buildStudySteps(noticeOrder), [noticeOrder]);
   const step = studySteps[stepIndex];
   const progress = Math.round(((stepIndex + 1) / studySteps.length) * 100);
   const isLastStep = stepIndex === studySteps.length - 1;
+  const isLive = publicRuntimeConfig.collectionMode === 'live';
   const participationDeclined = isConsentDenied(answers);
   const stepCompletion = getStepCompletion(step, answers);
   const canAdvance = isStepComplete(step, answers);
@@ -38,6 +44,7 @@ function App() {
     remainingRequired > 0
       ? `${remainingRequired} required ${remainingRequired === 1 ? 'choice' : 'choices'} remaining`
       : null;
+  const canUsePrimaryAction = canAdvance && (!isLastStep || !isLive || Boolean(turnstileToken));
 
   if (step.id === 'study_intro') {
     primaryActionLabel = 'Begin study';
@@ -56,6 +63,10 @@ function App() {
   } else if (!canAdvance) {
     primaryActionLabel =
       step.kind === 'notice-review' ? 'Review required notice' : 'Complete required choices';
+  }
+  if (isLastStep && isLive && canAdvance && !turnstileToken) {
+    primaryActionLabel = 'Complete verification';
+    incompleteMessage = 'Verification required before submission';
   }
   useEffect(() => {
     if (stepIndex === 0) {
@@ -80,7 +91,8 @@ function App() {
       startedAt,
       noticeOrder,
       completedAt,
-      userAgent: navigator.userAgent
+      userAgent: navigator.userAgent,
+      turnstileToken: turnstileToken ?? undefined
     });
   }
 
@@ -102,6 +114,15 @@ function App() {
       setError(null);
       return;
     }
+    if (isLive && !turnstileToken) {
+      setError('Complete verification before submitting your response.');
+      return;
+    }
+
+    if (submitInFlight.current) {
+      return;
+    }
+    submitInFlight.current = true;
 
     setStatus('submitting');
     setError(null);
@@ -113,6 +134,9 @@ function App() {
     } catch (submitError) {
       setStatus('idle');
       setError(submitError instanceof Error ? submitError.message : 'Unable to submit response.');
+      submitInFlight.current = false;
+      setTurnstileToken(null);
+      setTurnstileResetSignal((signal) => signal + 1);
     }
   }
 
@@ -141,7 +165,7 @@ function App() {
   return (
     <SurveyFrame
       canGoBack={stepIndex > 0}
-      canAdvance={canAdvance}
+      canAdvance={canUsePrimaryAction}
       currentStep={stepIndex + 1}
       error={error}
       isSubmitting={status === 'submitting'}
@@ -164,6 +188,13 @@ function App() {
           onAnswer={setAnswer}
           step={step}
         />
+        {isLastStep && isLive ? (
+          <TurnstileWidget
+            onTokenChange={setTurnstileToken}
+            resetSignal={turnstileResetSignal}
+            siteKey={publicRuntimeConfig.turnstileSiteKey}
+          />
+        ) : null}
       </div>
     </SurveyFrame>
   );

@@ -3,6 +3,7 @@ import json
 import math
 import os
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
@@ -20,6 +21,13 @@ TABLE_NAME = os.environ["RESPONSES_TABLE_NAME"]
 RETENTION_DAYS = int(os.environ.get("RETENTION_DAYS", "365"))
 REQUIRE_TURNSTILE = os.environ.get("REQUIRE_TURNSTILE", "false").lower() == "true"
 TURNSTILE_SECRET_PARAMETER = os.environ.get("TURNSTILE_SECRET_PARAMETER", "")
+TURNSTILE_ACTION = "survey-submit"
+TURNSTILE_HOSTNAME = urllib.parse.urlparse(ALLOWED_ORIGIN).hostname or ""
+TURNSTILE_SECRET = None
+
+
+class TurnstileUnavailableError(Exception):
+    pass
 
 
 def response(status_code, body, origin=ALLOWED_ORIGIN):
@@ -59,29 +67,47 @@ def require_string(payload, key, limit=120):
 
 
 def verify_turnstile(token, remote_ip):
+    global TURNSTILE_SECRET
+
     if not REQUIRE_TURNSTILE:
         return True
     if not TURNSTILE_SECRET_PARAMETER:
-        raise ValueError("Turnstile is required but no secret parameter is configured")
-    if not token:
+        raise TurnstileUnavailableError("Turnstile secret parameter is not configured")
+    if not isinstance(token, str) or not token.strip() or len(token) > 2048:
         return False
 
-    secret = SSM.get_parameter(Name=TURNSTILE_SECRET_PARAMETER, WithDecryption=True)["Parameter"]["Value"]
+    if TURNSTILE_SECRET is None:
+        try:
+            TURNSTILE_SECRET = SSM.get_parameter(
+                Name=TURNSTILE_SECRET_PARAMETER,
+                WithDecryption=True,
+            )["Parameter"]["Value"]
+        except (ClientError, KeyError) as error:
+            raise TurnstileUnavailableError("Turnstile secret is unavailable") from error
+
     form = urllib.parse.urlencode({
-        "secret": secret,
-        "response": token,
+        "secret": TURNSTILE_SECRET,
+        "response": token.strip(),
         "remoteip": remote_ip or "",
     }).encode("utf-8")
-
     request = urllib.request.Request(
         "https://challenges.cloudflare.com/turnstile/v0/siteverify",
         data=form,
         headers={"content-type": "application/x-www-form-urlencoded"},
         method="POST",
     )
-    with urllib.request.urlopen(request, timeout=5) as siteverify:
-        result = json.loads(siteverify.read().decode("utf-8"))
-    return bool(result.get("success"))
+
+    try:
+        with urllib.request.urlopen(request, timeout=5) as siteverify:
+            result = json.loads(siteverify.read().decode("utf-8"))
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, UnicodeDecodeError) as error:
+        raise TurnstileUnavailableError("Turnstile verification is unavailable") from error
+
+    return (
+        result.get("success") is True
+        and result.get("hostname") == TURNSTILE_HOSTNAME
+        and result.get("action") == TURNSTILE_ACTION
+    )
 
 
 def normalize_answers(answers):
@@ -140,6 +166,8 @@ def handler(event, _context):
             ConditionExpression="attribute_not_exists(response_id)",
         )
         return response(201, {"response_id": response_id}, origin=origin)
+    except TurnstileUnavailableError:
+        return response(503, {"message": "verification service unavailable"}, origin=origin)
     except (json.JSONDecodeError, ValueError) as error:
         return response(400, {"message": str(error)}, origin=origin)
     except ClientError:

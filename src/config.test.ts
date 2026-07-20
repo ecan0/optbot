@@ -14,7 +14,7 @@ const baseEnv: ImportMetaEnv = {
 };
 
 describe('public runtime configuration', () => {
-  it('defaults to preview mode without enabling a configured API', () => {
+  it('defaults to preview mode without enabling a configured API or Turnstile', () => {
     expect(
       createPublicRuntimeConfig({
         ...baseEnv,
@@ -24,7 +24,8 @@ describe('public runtime configuration', () => {
       apiBaseUrl: 'https://api.example.test',
       buildSha: 'local',
       collectionMode: 'preview',
-      releaseRef: 'local'
+      releaseRef: 'local',
+      turnstileSiteKey: ''
     });
   });
 
@@ -32,7 +33,8 @@ describe('public runtime configuration', () => {
     expect(() =>
       createPublicRuntimeConfig({
         ...baseEnv,
-        VITE_PUBLIC_COLLECTION_MODE: 'live'
+        VITE_PUBLIC_COLLECTION_MODE: 'live',
+        VITE_PUBLIC_TURNSTILE_SITE_KEY: 'test-site-key'
       })
     ).toThrow('Live collection requires VITE_PUBLIC_API_BASE_URL.');
   });
@@ -43,7 +45,8 @@ describe('public runtime configuration', () => {
         ...baseEnv,
         VITE_PUBLIC_API_BASE_URL: 'https://api.example.test',
         VITE_PUBLIC_COLLECTION_MODE: 'live',
-        VITE_PUBLIC_RELEASE_REF: 'v0.4.0'
+        VITE_PUBLIC_RELEASE_REF: 'v0.4.0',
+        VITE_PUBLIC_TURNSTILE_SITE_KEY: 'test-site-key'
       })
     ).toThrow('Live collection is not allowed before v1.0.0.');
   });
@@ -53,7 +56,8 @@ describe('public runtime configuration', () => {
       createPublicRuntimeConfig({
         ...baseEnv,
         VITE_PUBLIC_API_BASE_URL: 'https://api.example.test',
-        VITE_PUBLIC_COLLECTION_MODE: 'live'
+        VITE_PUBLIC_COLLECTION_MODE: 'live',
+        VITE_PUBLIC_TURNSTILE_SITE_KEY: 'test-site-key'
       })
     ).toThrow('Live collection is not allowed before v1.0.0.');
   });
@@ -65,13 +69,26 @@ describe('public runtime configuration', () => {
         VITE_PUBLIC_API_BASE_URL: 'https://api.example.test',
         VITE_PUBLIC_BUILD_SHA: 'abc123',
         VITE_PUBLIC_COLLECTION_MODE: 'live',
-        VITE_PUBLIC_RELEASE_REF: 'v1.0.0'
+        VITE_PUBLIC_RELEASE_REF: 'v1.0.0',
+        VITE_PUBLIC_TURNSTILE_SITE_KEY: 'test-site-key'
       })
     ).toMatchObject({
       buildSha: 'abc123',
       collectionMode: 'live',
-      releaseRef: 'v1.0.0'
+      releaseRef: 'v1.0.0',
+      turnstileSiteKey: 'test-site-key'
     });
+  });
+
+  it('requires a Turnstile site key before live collection can start', () => {
+    expect(() =>
+      createPublicRuntimeConfig({
+        ...baseEnv,
+        VITE_PUBLIC_API_BASE_URL: 'https://api.example.test',
+        VITE_PUBLIC_COLLECTION_MODE: 'live',
+        VITE_PUBLIC_RELEASE_REF: 'v1.0.0'
+      })
+    ).toThrow('Live collection requires VITE_PUBLIC_TURNSTILE_SITE_KEY.');
   });
 
   it('rejects unknown collection modes instead of guessing', () => {

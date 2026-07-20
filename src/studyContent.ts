@@ -7,7 +7,7 @@ import type {
   StudyStep
 } from './types';
 
-export const surveyFlowVersion = 'paired-notice-attitudes-v0.8.0';
+export const surveyFlowVersion = 'paired-notice-attitudes-v1.0.0';
 export const consentVersion = 'ai-training-consent-v1';
 export const noticeHeadline = 'Optbot Assistant model-improvement notice';
 export const noticeSummary =

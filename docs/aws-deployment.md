@@ -26,8 +26,9 @@ Create `.env.local` from `.env.example`:
 ```bash
 VITE_PUBLIC_SITE_URL=https://optbot.study
 VITE_PUBLIC_API_BASE_URL=<responses_api_endpoint>
+VITE_PUBLIC_COLLECTION_MODE=preview
 VITE_PUBLIC_SURVEY_ID=optbot-study-v1
-VITE_PUBLIC_TURNSTILE_SITE_KEY=
+VITE_PUBLIC_TURNSTILE_SITE_KEY=<public-site-key-for-live-collection>
 ```
 
 ## 3. Deploy Static Assets
@@ -65,4 +66,4 @@ require_turnstile               = true
 turnstile_secret_parameter_name = "/optbot/turnstile/secret"
 ```
 
-Run `terraform plan`, review the saved plan, then apply the reviewed plan.
+Run the protected Terraform plan with remote state and Turnstile enabled. Review its sanitized resource actions, then run `.github/workflows/terraform-apply-turnstile.yml` through the required reviewer on the GitHub `production` Environment. The apply workflow rejects changes beyond the expected in-place Lambda and IAM policy updates and verifies enforcement afterward.

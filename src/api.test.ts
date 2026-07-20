@@ -25,7 +25,7 @@ const validPayload: ResponsePayload = {
     decision_influence: 'Retention and deletion details influenced my decision.'
   },
   metadata: {
-    survey_flow_version: 'paired-notice-attitudes-v0.8.0',
+    survey_flow_version: 'paired-notice-attitudes-v1.0.0',
     study_design: 'within-participant-paired',
     primary_outcome: 'willingness_to_share',
     started_at: '2026-06-30T00:00:00.000Z',
@@ -46,7 +46,8 @@ const validPayload: ResponsePayload = {
       },
       assignment_method: 'fixed-study-treatment'
     }
-  }
+  },
+  turnstile_token: 'verified-token'
 };
 
 describe('response submission mode', () => {
@@ -87,6 +88,63 @@ describe('response submission mode', () => {
       'https://api.example.test/v1/responses',
       expect.objectContaining({ method: 'POST' })
     );
+  });
+
+  it('reports rejected verification without a success result', async () => {
+    const request = vi.fn<typeof fetch>().mockResolvedValue(new Response('{}', { status: 403 }));
+    const submit = createResponseSubmitter(
+      { apiBaseUrl: 'https://api.example.test', collectionMode: 'live' },
+      request
+    );
+
+    await expect(submit(validPayload)).rejects.toThrow(
+      'Verification was not accepted. Complete it again and retry.'
+    );
+  });
+
+  it('reports network and malformed success responses as submission failures', async () => {
+    const failedRequest = vi.fn<typeof fetch>().mockRejectedValue(new TypeError('network unavailable'));
+    const malformedRequest = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response('{}', { status: 201, headers: { 'content-type': 'application/json' } })
+    );
+
+    await expect(
+      createResponseSubmitter(
+        { apiBaseUrl: 'https://api.example.test', collectionMode: 'live' },
+        failedRequest
+      )(validPayload)
+    ).rejects.toThrow('We could not submit your response. Please try again.');
+    await expect(
+      createResponseSubmitter(
+        { apiBaseUrl: 'https://api.example.test', collectionMode: 'live' },
+        malformedRequest
+      )(validPayload)
+    ).rejects.toThrow('We could not confirm that your response was stored. Please try again.');
+  });
+
+  it('deduplicates concurrent live submissions', async () => {
+    let resolveRequest: ((response: Response) => void) | undefined;
+    const pendingResponse = new Promise<Response>((resolve) => {
+      resolveRequest = resolve;
+    });
+    const request = vi.fn<typeof fetch>().mockReturnValue(pendingResponse);
+    const submit = createResponseSubmitter(
+      { apiBaseUrl: 'https://api.example.test', collectionMode: 'live' },
+      request
+    );
+
+    const firstSubmission = submit(validPayload);
+    const duplicateSubmission = submit(validPayload);
+    expect(duplicateSubmission).toBe(firstSubmission);
+    expect(request).toHaveBeenCalledTimes(1);
+
+    resolveRequest?.(
+      new Response(JSON.stringify({ response_id: 'response-123' }), {
+        status: 201,
+        headers: { 'content-type': 'application/json' }
+      })
+    );
+    await expect(firstSubmission).resolves.toMatchObject({ responseId: 'response-123' });
   });
 
   it('refuses live collection without an API endpoint', async () => {

@@ -148,12 +148,14 @@ export function buildResponsePayload(args: {
   startedAt: string;
   completedAt: string;
   userAgent?: string;
+  turnstileToken?: string;
 }): ResponsePayload {
   return {
     survey_id: args.surveyId,
     variant_id: args.variant.id,
     consent_version: args.consentVersion,
     answers: args.answers,
+    ...(args.turnstileToken ? { turnstile_token: args.turnstileToken } : {}),
     metadata: {
       survey_flow_version: surveyFlowVersion,
       study_design: 'within-participant-paired',

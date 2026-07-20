@@ -1,0 +1,73 @@
+name: Apply Production Turnstile
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: terraform-apply-production
+  cancel-in-progress: false
+
+env:
+  TF_IN_AUTOMATION: true
+
+jobs:
+  apply:
+    name: Review And Apply
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || 'us-west-2' }}
+      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+      TF_BACKEND_CONFIG_B64: ${{ secrets.TF_BACKEND_CONFIG_B64 }}
+      TF_VAR_acm_certificate_arn: ${{ secrets.TF_VAR_ACM_CERTIFICATE_ARN }}
+      TF_VAR_require_turnstile: "true"
+      TF_VAR_turnstile_secret_parameter_name: /optbot/turnstile/secret
+    defaults:
+      run:
+        working-directory: infra/aws
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check protected configuration
+        run: |
+          if [ -z "$AWS_ROLE_TO_ASSUME" ] || [ -z "$TF_BACKEND_CONFIG_B64" ] || [ -z "$TF_VAR_acm_certificate_arn" ]; then
+            echo "Production apply requires the OIDC role, remote state configuration, and certificate variable."
+            exit 1
+          fi
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+      - uses: hashicorp/setup-terraform@v4
+      - name: Confirm Turnstile secret
+        run: |
+          test "$(aws ssm get-parameter --name /optbot/turnstile/secret --with-decryption --query Parameter.Type --output text)" = "SecureString"
+          echo "Turnstile SecureString exists and is readable by the protected OIDC role."
+      - name: Terraform init and validate
+        run: |
+          echo "$TF_BACKEND_CONFIG_B64" | base64 -d > backend.hcl
+          terraform init -input=false -backend-config=backend.hcl > terraform-init.log 2>&1
+          terraform validate
+      - name: Create constrained plan
+        run: |
+          terraform plan -input=false -no-color -var-file=terraform.tfvars.example -var "acm_certificate_arn=$TF_VAR_acm_certificate_arn" -out=tfplan > terraform-plan.log 2>&1
+          terraform show -json tfplan > tfplan.json
+          python ../../scripts/validate-turnstile-plan.py tfplan.json true
+      - name: Apply reviewed plan
+        run: |
+          if ! terraform apply -input=false -auto-approve tfplan > terraform-apply.log 2>&1; then
+            echo "Terraform apply failed; private Terraform output remains suppressed."
+            exit 1
+          fi
+      - name: Verify enforcement
+        run: |
+          test "$(aws lambda get-function-configuration --function-name optbot-submit-response --query 'Environment.Variables.REQUIRE_TURNSTILE' --output text)" = "true"
+          test "$(aws lambda get-function-configuration --function-name optbot-submit-response --query 'Environment.Variables.TURNSTILE_SECRET_PARAMETER' --output text)" = "/optbot/turnstile/secret"
+          echo "Production Lambda requires Turnstile and references the expected SSM parameter."
+      - name: Remove private plan material
+        if: always()
+        run: rm -f backend.hcl tfplan tfplan.json terraform-init.log terraform-plan.log terraform-apply.log

@@ -5,6 +5,7 @@ export type PublicRuntimeConfig = {
   buildSha: string;
   collectionMode: CollectionMode;
   releaseRef: string;
+  turnstileSiteKey: string;
 };
 
 export function parseCollectionMode(value: string | undefined): CollectionMode {
@@ -27,9 +28,13 @@ export function createPublicRuntimeConfig(env: ImportMetaEnv): PublicRuntimeConf
   const releaseRef = env.VITE_PUBLIC_RELEASE_REF || 'local';
   const releaseMatch = /^v(\d+)\.\d+\.\d+$/.exec(releaseRef);
   const releaseMajor = releaseMatch ? Number(releaseMatch[1]) : null;
+  const turnstileSiteKey = (env.VITE_PUBLIC_TURNSTILE_SITE_KEY || '').trim();
 
   if (collectionMode === 'live' && !apiBaseUrl) {
     throw new Error('Live collection requires VITE_PUBLIC_API_BASE_URL.');
+  }
+  if (collectionMode === 'live' && !turnstileSiteKey) {
+    throw new Error('Live collection requires VITE_PUBLIC_TURNSTILE_SITE_KEY.');
   }
 
   if (collectionMode === 'live' && (releaseMajor === null || releaseMajor < 1)) {
@@ -40,7 +45,8 @@ export function createPublicRuntimeConfig(env: ImportMetaEnv): PublicRuntimeConf
     apiBaseUrl,
     buildSha: env.VITE_PUBLIC_BUILD_SHA || 'local',
     collectionMode,
-    releaseRef
+    releaseRef,
+    turnstileSiteKey
   };
 }
 

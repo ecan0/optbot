@@ -18,6 +18,8 @@
         "acm:Describe*",
         "acm:List*",
         "apigateway:GET",
+        "cloudwatch:DescribeAlarms",
+        "cloudwatch:ListTagsForResource",
         "dynamodb:Describe*",
         "dynamodb:GetItem",
         "dynamodb:List*",
