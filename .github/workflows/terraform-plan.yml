@@ -14,6 +14,10 @@ on:
         description: Initialize Terraform with TF_BACKEND_CONFIG_B64 from the selected environment.
         type: boolean
         default: false
+      enable_turnstile:
+        description: Plan production Turnstile enforcement using the existing SSM SecureString.
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -36,7 +40,12 @@ jobs:
       AWS_REGION: ${{ vars.AWS_REGION || 'us-west-2' }}
       AWS_ROLE_TO_ASSUME: ${{ vars.AWS_ROLE_TO_ASSUME }}
       TF_BACKEND_CONFIG_B64: ${{ vars.TF_BACKEND_CONFIG_B64 }}
-      TF_VAR_acm_certificate_arn: ${{ vars.TF_VAR_acm_certificate_arn }}
+      TF_VAR_acm_certificate_arn: ${{ vars.TF_VAR_ACM_CERTIFICATE_ARN }}
+      TF_VAR_require_turnstile: ${{ inputs.enable_turnstile && 'true' || 'false' }}
+      TF_VAR_turnstile_secret_parameter_name: ${{ inputs.enable_turnstile && '/optbot/turnstile/secret' || '' }}
+      VITE_PUBLIC_API_BASE_URL: ${{ vars.VITE_PUBLIC_API_BASE_URL }}
+      SITE_BUCKET: ${{ vars.SITE_BUCKET }}
+      CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
     defaults:
       run:
         working-directory: infra/aws
@@ -65,13 +74,41 @@ jobs:
           else
             terraform init -backend=false -input=false
           fi
+      - name: Check production resources
+        if: inputs.environment == 'production' && inputs.use_remote_state
+        run: |
+          table_name="$(terraform output -raw responses_table_name)"
+          api_endpoint="$(terraform output -raw responses_api_endpoint)"
+          site_bucket="$(terraform output -raw site_bucket_name)"
+          distribution_id="$(terraform output -raw cloudfront_distribution_id)"
+
+          test "$api_endpoint" = "$VITE_PUBLIC_API_BASE_URL"
+          test "$site_bucket" = "$SITE_BUCKET"
+          test "$distribution_id" = "$CLOUDFRONT_DISTRIBUTION_ID"
+          test "$(aws dynamodb describe-time-to-live --table-name "$table_name" --query 'TimeToLiveDescription.TimeToLiveStatus' --output text)" = "ENABLED"
+          test "$(aws dynamodb describe-time-to-live --table-name "$table_name" --query 'TimeToLiveDescription.AttributeName' --output text)" = "expires_at"
+          test "$(aws dynamodb describe-continuous-backups --table-name "$table_name" --query 'ContinuousBackupsDescription.PointInTimeRecoveryDescription.PointInTimeRecoveryStatus' --output text)" = "ENABLED"
+          test "$(aws s3api get-bucket-versioning --bucket "$site_bucket" --query Status --output text)" = "Enabled"
+          test "$(aws cloudfront get-distribution --id "$distribution_id" --query 'Distribution.DistributionConfig.Enabled' --output text)" = "True"
+          test "$(aws cloudfront get-distribution --id "$distribution_id" --query 'contains(Distribution.DistributionConfig.Aliases.Items, `optbot.study`)' --output text)" = "True"
+
+          if [ "${{ inputs.enable_turnstile }}" = "true" ]; then
+            test "$(aws ssm get-parameter --name /optbot/turnstile/secret --with-decryption --query Parameter.Type --output text)" = "SecureString"
+          fi
+
+          echo "Production API, response retention, PITR, versioned static delivery, custom domain, and optional Turnstile secret checks passed."
       - run: terraform validate
+      - name: Require remote state for production enforcement
+        if: inputs.environment == 'production' && inputs.enable_turnstile && !inputs.use_remote_state
+        run: |
+          echo "Production Turnstile plans require remote state."
+          exit 1
       - name: Terraform plan
-        run: terraform plan -input=false -no-color -var-file=terraform.tfvars.example -out=tfplan
-      - run: terraform show -no-color tfplan > tfplan.txt
-      - uses: actions/upload-artifact@v7
-        with:
-          name: terraform-plan-${{ inputs.environment }}-${{ github.sha }}
-          path: infra/aws/tfplan.txt
-          if-no-files-found: error
-          retention-days: 7
+        run: terraform plan -input=false -no-color -var-file=terraform.tfvars.example -out=tfplan > terraform-plan.log
+      - name: Review sanitized plan
+        run: |
+          terraform show -json tfplan > tfplan.json
+          python ../../scripts/validate-turnstile-plan.py tfplan.json "${{ inputs.enable_turnstile }}"
+      - name: Remove private plan material
+        if: always()
+        run: rm -f backend.hcl tfplan tfplan.json terraform-plan.log
