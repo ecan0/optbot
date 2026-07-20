@@ -36,9 +36,9 @@ The production build is written to `dist/`.
 | --- | --- |
 | `VITE_PUBLIC_SITE_URL` | Public site URL, normally `https://optbot.study`. |
 | `VITE_PUBLIC_API_BASE_URL` | API base URL for response submission. Required for live collection; never contacted in preview mode. |
-| `VITE_PUBLIC_COLLECTION_MODE` | Explicit response gate: `preview` never sends responses; `live` requires an API endpoint. Defaults to `preview`. |
+| `VITE_PUBLIC_COLLECTION_MODE` | Explicit response gate: `preview` never sends responses; `live` requires an API endpoint and Turnstile site key. Defaults to `preview`. |
 | `VITE_PUBLIC_SURVEY_ID` | Stable identifier for the current survey version. |
-| `VITE_PUBLIC_TURNSTILE_SITE_KEY` | Optional public Turnstile site key. |
+| `VITE_PUBLIC_TURNSTILE_SITE_KEY` | Public Turnstile site key. Required only for live collection. |
 
 Only `VITE_` variables are exposed to the browser. Do not put secrets in frontend environment files.
 
@@ -55,7 +55,7 @@ terraform -chdir=infra/aws init -backend=false
 terraform -chdir=infra/aws validate
 ```
 
-CI also includes a manual Terraform plan workflow. It never applies infrastructure. See [docs/ci-and-release.md](docs/ci-and-release.md).
+CI also includes a manual Terraform plan workflow and a production-only Turnstile apply workflow protected by the `production` Environment. See [docs/ci-and-release.md](docs/ci-and-release.md).
 
 ## Cloud Delivery
 
@@ -76,7 +76,7 @@ Static assets can be hosted from any SPA-capable static origin. This repo includ
 - S3 and CloudFront for the site
 - API Gateway and Lambda for `POST /v1/responses`
 - DynamoDB with TTL for response storage
-- Optional Turnstile secret lookup through SSM Parameter Store
+- Turnstile enforcement with the private secret stored in SSM Parameter Store
 
 See [docs/aws-deployment.md](docs/aws-deployment.md) for the full deployment flow.
 

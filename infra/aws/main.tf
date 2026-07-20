@@ -263,6 +263,13 @@ resource "aws_lambda_function" "submit_response" {
     }
   }
 
+  lifecycle {
+    precondition {
+      condition     = !var.require_turnstile || var.turnstile_secret_parameter_name != ""
+      error_message = "require_turnstile requires turnstile_secret_parameter_name."
+    }
+  }
+
   depends_on = [
     aws_cloudwatch_log_group.submit_response,
     aws_iam_role_policy_attachment.submit_response,

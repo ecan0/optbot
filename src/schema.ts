@@ -93,7 +93,7 @@ export const responsePayloadSchema = z.object({
   consent_version: z.literal('ai-training-consent-v1'),
   answers: answersSchema,
   metadata: z.object({
-    survey_flow_version: z.literal('paired-notice-attitudes-v0.8.0'),
+    survey_flow_version: z.literal('paired-notice-attitudes-v1.0.0'),
     study_design: z.literal('within-participant-paired'),
     primary_outcome: z.literal('willingness_to_share'),
     started_at: z.string().datetime(),
@@ -103,7 +103,7 @@ export const responsePayloadSchema = z.object({
     assigned_notice_slot: z.enum(['A', 'B']),
     shown_notice_variant: shownNoticeVariantSchema
   }),
-  turnstile_token: z.string().optional()
+  turnstile_token: z.string().trim().min(1).max(2048).optional()
 });
 
 export type ResponsePayload = z.infer<typeof responsePayloadSchema>;

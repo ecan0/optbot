@@ -32,6 +32,8 @@ Environment variables:
 | `CLOUDFRONT_DISTRIBUTION_ID` | `dev`, `production` | CloudFront distribution invalidated after upload. Use separate distributions per environment. |
 | `VITE_PUBLIC_SITE_URL` | `dev`, `production` | Public URL baked into the frontend build. Dev must use a non-production URL. |
 | `VITE_PUBLIC_API_BASE_URL` | `dev`, `production` | Optional API base URL. Leave empty for preview-only frontend testing. |
+| `VITE_PUBLIC_COLLECTION_MODE` | `dev`, `production` | `preview` never submits; `live` is reserved for approved v1-or-later collection. |
+| `VITE_PUBLIC_TURNSTILE_SITE_KEY` | `dev`, `production` | Public widget key required for live collection. |
 
 Use environment variables, not committed files, for account-specific values.
 
@@ -69,7 +71,7 @@ Example policies live under `infra/aws`:
 - `plan-policy.example.json`
 - `deploy-static-policy.example.json`
 
-The deploy policy is intentionally limited to static asset upload and CloudFront invalidation. Terraform apply usually needs broader permissions and should stay behind a separate approval process.
+The deploy policy is intentionally limited to static asset upload and CloudFront invalidation. Terraform apply needs broader permissions. The repository's production Turnstile apply workflow is manual, uses the protected `production` Environment, and rejects any plan beyond the expected in-place Lambda and IAM updates.
 
 ## Release Tags
 

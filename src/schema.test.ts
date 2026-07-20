@@ -24,7 +24,7 @@ const validPayload = {
     decision_influence: 'Clear retention tradeoffs most influenced my decision.'
   },
   metadata: {
-    survey_flow_version: 'paired-notice-attitudes-v0.8.0',
+    survey_flow_version: 'paired-notice-attitudes-v1.0.0',
     study_design: 'within-participant-paired',
     primary_outcome: 'willingness_to_share',
     started_at: '2026-06-30T00:00:00.000Z',

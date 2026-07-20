@@ -57,6 +57,7 @@ jobs:
         working-directory: infra/aws
     steps:
       - uses: actions/checkout@v7
+      - run: python -m unittest discover -s lambda -p 'test_*.py'
       - uses: hashicorp/setup-terraform@v4
       - run: terraform fmt -check
       - run: terraform init -backend=false -input=false

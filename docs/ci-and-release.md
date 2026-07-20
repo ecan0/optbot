@@ -61,24 +61,25 @@ Required environment variables:
 | `VITE_PUBLIC_SITE_URL` | Site URL baked into the frontend. Required for `dev`; production defaults to `https://optbot.study` if unset. |
 | `VITE_PUBLIC_API_BASE_URL` | Response API base URL. Required only when collection mode is `live`. |
 | `VITE_PUBLIC_COLLECTION_MODE` | Explicit submission gate. Defaults to `preview`; set to `live` only for approved response collection with an API endpoint. |
+| `VITE_PUBLIC_TURNSTILE_SITE_KEY` | Public Turnstile site key. Required only when collection mode is `live`. |
 
 For `dev`, `VITE_PUBLIC_SITE_URL` must not be `https://optbot.study`. Use a dev CloudFront URL or a subdomain such as `https://dev.optbot.study`. If the dev URL should only be visible to selected people, enforce that at the hosting front door, for example with Cloudflare Access, AWS WAF, or a temporary CloudFront Function gate.
 
 ## Release Path
 
 1. Merge app or infrastructure changes after CI passes.
-2. Create and push an annotated SemVer tag from `main`.
-3. Let the release workflow create the GitHub Release artifact.
-4. Run the manual Terraform plan workflow when AWS credentials are ready.
-5. Review the plan output.
-6. Apply Terraform from a trusted local machine or a separately approved workflow.
-7. Run the manual static deploy workflow for the tag after infrastructure exists.
-8. Point `optbot.study` at the CloudFront distribution after the certificate and alias are ready.
+2. Run the manual Terraform plan with remote state and Turnstile enabled.
+3. Review the sanitized plan. It must contain only in-place Lambda and IAM policy updates.
+4. Run `.github/workflows/terraform-apply-turnstile.yml` through the protected `production` Environment. It applies the exact constrained plan and verifies the Lambda configuration without exposing private plan output.
+5. Create and push an annotated SemVer tag from `main`.
+6. Let the release workflow create the GitHub Release artifact.
+7. Immediately before deployment, set `VITE_PUBLIC_COLLECTION_MODE=live` and the public Turnstile site key on the `production` Environment.
+8. Run the protected static deployment for the release tag.
 
 For survey iteration before public launch, production SemVer tags below `v1.0.0` deploy to `optbot.study` as non-collecting live-site previews. The deploy workflow requires `VITE_PUBLIC_COLLECTION_MODE=preview` for these tags.
 
-The `v1.0.0` tag starts the public survey lifecycle. Production deploys at `v1.0.0` and later require `VITE_PUBLIC_COLLECTION_MODE=live` plus a configured response API. The workflow also injects the checked-out release ref and commit SHA into the frontend build.
+The `v1.0.0` tag starts the public survey lifecycle. Production deploys at `v1.0.0` and later require `VITE_PUBLIC_COLLECTION_MODE=live`, a configured response API, and a public Turnstile site key. The workflow also injects the checked-out release ref and commit SHA into the frontend build.
 
 ## Cost Guardrails
 
-No AWS cost starts from CI alone. Costs begin when Terraform is applied, remote state resources are created, static assets are uploaded, or CloudFront invalidations are requested. Keep `terraform apply` out of public CI until the release process has an explicit approval gate.
+No AWS cost starts from CI alone. Costs begin when Terraform is applied, remote state resources are created, static assets are uploaded, or CloudFront invalidations are requested. The production Turnstile apply is manual, constrained to two reviewed in-place resource updates, and gated by the required reviewer on the `production` Environment.

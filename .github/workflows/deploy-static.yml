@@ -88,6 +88,10 @@ jobs:
             echo "Live collection requires VITE_PUBLIC_API_BASE_URL."
             exit 1
           fi
+          if [ "$VITE_PUBLIC_COLLECTION_MODE" = "live" ] && [ -z "$VITE_PUBLIC_TURNSTILE_SITE_KEY" ]; then
+            echo "Live collection requires VITE_PUBLIC_TURNSTILE_SITE_KEY."
+            exit 1
+          fi
           if [ -z "$AWS_ROLE_TO_ASSUME" ] || [ -z "$SITE_BUCKET" ] || [ -z "$CLOUDFRONT_DISTRIBUTION_ID" ]; then
             echo "Set AWS_ROLE_TO_ASSUME, SITE_BUCKET, and CLOUDFRONT_DISTRIBUTION_ID on the selected GitHub Environment."
             echo "This workflow is manual and should be protected with required reviewers before production use."
