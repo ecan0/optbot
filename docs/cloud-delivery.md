@@ -21,7 +21,7 @@ Create these environments before enabling cloud workflows:
 | `dev` | Optional cloud plan testing and branch-based survey preview. | Optional. |
 | `production` | Production plan and static deploy. | Yes. |
 
-Environment variables:
+GitHub Environment configuration:
 
 | Variable | Environment | Purpose |
 | --- | --- | --- |
@@ -35,7 +35,7 @@ Environment variables:
 | `VITE_PUBLIC_COLLECTION_MODE` | `dev`, `production` | `preview` never submits; `live` is reserved for approved v1-or-later collection. |
 | `VITE_PUBLIC_TURNSTILE_SITE_KEY` | `dev`, `production` | Public widget key required for live collection. |
 
-Use environment variables, not committed files, for account-specific values.
+Store `AWS_ROLE_TO_ASSUME`, `TF_BACKEND_CONFIG_B64`, `TF_VAR_ACM_CERTIFICATE_ARN`, `SITE_BUCKET`, and `CLOUDFRONT_DISTRIBUTION_ID` as Environment secrets so public Actions logs mask account-specific infrastructure. Store `AWS_REGION` and all `VITE_PUBLIC_*` values as Environment variables. Do not commit either class of value to files.
 
 ## Dev Preview Isolation
 

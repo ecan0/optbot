@@ -22,9 +22,9 @@ jobs:
     environment: production
     env:
       AWS_REGION: ${{ vars.AWS_REGION || 'us-west-2' }}
-      AWS_ROLE_TO_ASSUME: ${{ vars.AWS_ROLE_TO_ASSUME }}
-      TF_BACKEND_CONFIG_B64: ${{ vars.TF_BACKEND_CONFIG_B64 }}
-      TF_VAR_acm_certificate_arn: ${{ vars.TF_VAR_ACM_CERTIFICATE_ARN }}
+      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME || vars.AWS_ROLE_TO_ASSUME }}
+      TF_BACKEND_CONFIG_B64: ${{ secrets.TF_BACKEND_CONFIG_B64 || vars.TF_BACKEND_CONFIG_B64 }}
+      TF_VAR_acm_certificate_arn: ${{ secrets.TF_VAR_ACM_CERTIFICATE_ARN || vars.TF_VAR_ACM_CERTIFICATE_ARN }}
       TF_VAR_require_turnstile: "true"
       TF_VAR_turnstile_secret_parameter_name: /optbot/turnstile/secret
     defaults:

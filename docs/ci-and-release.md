@@ -34,13 +34,15 @@ See `docs/git-strategy.md` for the full branching and tagging policy.
 
 `.github/workflows/terraform-plan.yml` is manual and has no apply step. It uses GitHub OIDC when `AWS_ROLE_TO_ASSUME` is configured.
 
-Required repository or environment variables:
+Required GitHub Environment configuration:
 
 | Variable | Purpose |
 | --- | --- |
 | `AWS_ROLE_TO_ASSUME` | IAM role ARN that GitHub Actions can assume with OIDC. |
 | `AWS_REGION` | AWS workload region, currently `us-west-2`. |
 | `TF_BACKEND_CONFIG_B64` | Optional base64-encoded `backend.hcl` for remote Terraform state. |
+
+Store `AWS_ROLE_TO_ASSUME`, `TF_BACKEND_CONFIG_B64`, and `TF_VAR_ACM_CERTIFICATE_ARN` as Environment secrets so public workflow logs mask account-specific infrastructure. `AWS_REGION` remains an Environment variable.
 
 The workflow can run with `terraform init -backend=false` for an account-backed speculative plan, or with remote state when `use_remote_state` is selected and backend config exists.
 
@@ -50,7 +52,7 @@ The workflow can run with `terraform init -backend=false` for an account-backed 
 
 Dev deploys may use a branch, tag, or SHA in the `release_ref` input. Production deploys must use an immutable SemVer tag. The workflow rejects non-tag production deploys.
 
-Required environment variables:
+Required GitHub Environment configuration:
 
 | Variable | Purpose |
 | --- | --- |
@@ -62,6 +64,8 @@ Required environment variables:
 | `VITE_PUBLIC_API_BASE_URL` | Response API base URL. Required only when collection mode is `live`. |
 | `VITE_PUBLIC_COLLECTION_MODE` | Explicit submission gate. Defaults to `preview`; set to `live` only for approved response collection with an API endpoint. |
 | `VITE_PUBLIC_TURNSTILE_SITE_KEY` | Public Turnstile site key. Required only when collection mode is `live`. |
+
+Store `AWS_ROLE_TO_ASSUME`, `SITE_BUCKET`, and `CLOUDFRONT_DISTRIBUTION_ID` as Environment secrets. Store `AWS_REGION` and all `VITE_PUBLIC_*` values as Environment variables because they are public build inputs.
 
 For `dev`, `VITE_PUBLIC_SITE_URL` must not be `https://optbot.study`. Use a dev CloudFront URL or a subdomain such as `https://dev.optbot.study`. If the dev URL should only be visible to selected people, enforce that at the hosting front door, for example with Cloudflare Access, AWS WAF, or a temporary CloudFront Function gate.
 
