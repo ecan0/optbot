@@ -38,14 +38,14 @@ jobs:
     environment: ${{ inputs.environment }}
     env:
       AWS_REGION: ${{ vars.AWS_REGION || 'us-west-2' }}
-      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME || vars.AWS_ROLE_TO_ASSUME }}
-      TF_BACKEND_CONFIG_B64: ${{ secrets.TF_BACKEND_CONFIG_B64 || vars.TF_BACKEND_CONFIG_B64 }}
-      TF_VAR_acm_certificate_arn: ${{ secrets.TF_VAR_ACM_CERTIFICATE_ARN || vars.TF_VAR_ACM_CERTIFICATE_ARN }}
+      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+      TF_BACKEND_CONFIG_B64: ${{ secrets.TF_BACKEND_CONFIG_B64 }}
+      TF_VAR_acm_certificate_arn: ${{ secrets.TF_VAR_ACM_CERTIFICATE_ARN }}
       TF_VAR_require_turnstile: ${{ inputs.enable_turnstile && 'true' || 'false' }}
       TF_VAR_turnstile_secret_parameter_name: ${{ inputs.enable_turnstile && '/optbot/turnstile/secret' || '' }}
       VITE_PUBLIC_API_BASE_URL: ${{ vars.VITE_PUBLIC_API_BASE_URL }}
-      SITE_BUCKET: ${{ secrets.SITE_BUCKET || vars.SITE_BUCKET }}
-      CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID || vars.CLOUDFRONT_DISTRIBUTION_ID }}
+      SITE_BUCKET: ${{ secrets.SITE_BUCKET }}
+      CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
     defaults:
       run:
         working-directory: infra/aws

@@ -5,10 +5,11 @@ import json
 import sys
 from pathlib import Path
 
-EXPECTED_TURNSTILE_CHANGES = {
+ALLOWED_TURNSTILE_CHANGES = {
     "aws_iam_policy.submit_response": ("update",),
     "aws_lambda_function.submit_response": ("update",),
 }
+REQUIRED_TURNSTILE_CHANGES = {"aws_lambda_function.submit_response"}
 
 
 def main() -> int:
@@ -31,12 +32,17 @@ def main() -> int:
     for address, actions in sorted(changed.items()):
         print(f"  {address}: {','.join(actions)}")
 
-    if enforce_turnstile and changed != EXPECTED_TURNSTILE_CHANGES:
-        print("Turnstile plan rejected: expected only in-place Lambda configuration/code and IAM policy updates.")
-        return 1
-
     if enforce_turnstile:
-        print("Turnstile plan contains only the two intended in-place resource updates.")
+        unexpected = {
+            address: actions
+            for address, actions in changed.items()
+            if ALLOWED_TURNSTILE_CHANGES.get(address) != actions
+        }
+        missing = REQUIRED_TURNSTILE_CHANGES - changed.keys()
+        if unexpected or missing:
+            print("Turnstile plan rejected: expected only intended in-place Lambda and optional IAM policy updates.")
+            return 1
+        print("Turnstile plan contains only intended in-place resource updates.")
     return 0
 
 
