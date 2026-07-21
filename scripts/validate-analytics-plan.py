@@ -57,10 +57,11 @@ def is_turnstile_enforcement(change: dict) -> bool:
         for key, value in after_variables.items()
         if key not in {"REQUIRE_TURNSTILE", "TURNSTILE_SECRET_PARAMETER"}
     }
-    # archive_file ZIP metadata can change the computed hash across clean CI checkouts
-    # even when submit_response.py is unchanged. The reviewed commit remains the code source.
-    before_copy["source_code_hash"] = None
-    after_copy["source_code_hash"] = None
+    # archive_file ZIP metadata can change computed deployment fields across clean
+    # CI checkouts even when submit_response.py is unchanged.
+    for key in ("source_code_hash", "last_modified"):
+        before_copy[key] = None
+        after_copy[key] = None
     return (
         before_copy == after_copy
         and before_variables.get("REQUIRE_TURNSTILE") == "false"
