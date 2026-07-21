@@ -392,6 +392,11 @@ data "aws_iam_policy_document" "analytics_snapshot" {
     resources = [aws_s3_bucket.analytics.arn]
   }
   statement {
+    sid       = "ReadCuratedSnapshots"
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.analytics.arn}/curated/*"]
+  }
+  statement {
     sid       = "ManageQueryResults"
     actions   = ["s3:GetObject", "s3:PutObject"]
     resources = ["${aws_s3_bucket.analytics.arn}/query-results/*"]
