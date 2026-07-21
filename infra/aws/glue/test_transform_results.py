@@ -1,6 +1,7 @@
 import copy
 import importlib.util
 import unittest
+from decimal import Decimal
 from pathlib import Path
 
 MODULE_PATH = Path(__file__).with_name("transform_results.py")
@@ -99,6 +100,16 @@ class NormalizeItemTests(unittest.TestCase):
                 item["answers"]["visual_willingness"] = value
                 quality = self.normalize(item)["quality"]
                 self.assertIn("invalid_visual_willingness", quality["quality_reasons"])
+
+    def test_accepts_integral_decimal_values_from_glue(self):
+        item = valid_item()
+        item["expires_at"] = Decimal("1800000000")
+        for name in transform.RATING_KEYS:
+            item["answers"][name] = Decimal(str(item["answers"][name]))
+        quantitative = self.normalize(item)["quantitative"]
+        self.assertIsNotNone(quantitative)
+        self.assertEqual(quantitative["visual_willingness"], 5)
+        self.assertIsInstance(quantitative["visual_willingness"], int)
 
     def test_accepts_all_categorical_boundaries(self):
         for age in ("18_24", "25_34", "35_44", "45_54", "55_65", "prefer_not_age"):

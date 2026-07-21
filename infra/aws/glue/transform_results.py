@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import sys
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Any
 
 ANALYSIS_SCHEMA_VERSION = "optbot-analysis-v1"
@@ -50,6 +51,16 @@ def _parse_utc(value: Any) -> datetime | None:
 
 def _iso(value: datetime) -> str:
     return value.isoformat().replace("+00:00", "Z")
+
+
+def _integer(value: Any) -> int | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, Decimal) and value.is_finite() and value == value.to_integral_value():
+        return int(value)
+    return None
 
 
 def _reason(reasons: list[str], condition: bool, value: str) -> None:
@@ -103,13 +114,12 @@ def normalize_item(
     _reason(reasons, order not in {"assigned-first", "reference-first"}, "invalid_notice_presentation_order")
     for name, allowed in CATEGORIES.items():
         _reason(reasons, answers.get(name) not in allowed, f"invalid_{name}")
+    rating_values: dict[str, int] = {}
     for name in RATING_KEYS:
-        value = answers.get(name)
-        _reason(
-            reasons,
-            isinstance(value, bool) or not isinstance(value, int) or not 1 <= value <= 5,
-            f"invalid_{name}",
-        )
+        value = _integer(answers.get(name))
+        _reason(reasons, value is None or not 1 <= value <= 5, f"invalid_{name}")
+        if value is not None:
+            rating_values[name] = value
     for name in ("notice_descriptions", "decision_influence"):
         value = answers.get(name)
         _reason(reasons, not isinstance(value, str) or not 1 <= len(value) <= 4000, f"invalid_{name}")
@@ -152,8 +162,8 @@ def normalize_item(
     if completed and submitted:
         _reason(reasons, (completed - submitted).total_seconds() > 86400, "completed_too_late")
 
-    expires_at = source.get("expires_at")
-    expires_valid = isinstance(expires_at, int) and not isinstance(expires_at, bool)
+    expires_at = _integer(source.get("expires_at"))
+    expires_valid = expires_at is not None
     _reason(reasons, not expires_valid, "invalid_expires_at")
     expired = expires_valid and expires_at <= extraction_epoch
     if expired:
@@ -208,10 +218,10 @@ def normalize_item(
         "presentation_preference": answers["presentation_preference"],
     }
     for name in RATING_KEYS:
-        quantitative[name] = answers[name]
+        quantitative[name] = rating_values[name]
     for outcome in ("willingness", "trust", "completeness", "ease_of_use"):
         quantitative[f"{outcome}_delta_visual_minus_text"] = (
-            answers[f"visual_{outcome}"] - answers[f"text_{outcome}"]
+            rating_values[f"visual_{outcome}"] - rating_values[f"text_{outcome}"]
         )
 
     restricted = {

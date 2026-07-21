@@ -167,6 +167,21 @@ class AnalyticsPlanValidatorTests(unittest.TestCase):
         self.assertFalse(valid)
         self.assertEqual(unexpected["aws_iam_role_policy.analytics_snapshot"], ("update",))
 
+    def test_accepts_reviewed_transform_script_update(self):
+        plan = plan_with({})
+        plan["resource_changes"].append({
+            "address": "aws_s3_object.analytics_transform_script",
+            "change": {
+                "actions": ["update"],
+                "before": {"key": "glue/transform_results.py", "etag": "old"},
+                "after": {"key": "glue/transform_results.py", "etag": "new"},
+            },
+        })
+        valid, unexpected, missing = validator.validate(plan)
+        self.assertTrue(valid)
+        self.assertEqual(unexpected, {})
+        self.assertEqual(missing, set())
+
     def test_rejects_unexpected_create(self):
         changes = self.valid_changes()
         changes["aws_s3_bucket.unreviewed"] = ("create",)
