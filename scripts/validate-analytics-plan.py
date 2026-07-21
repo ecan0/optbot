@@ -114,6 +114,25 @@ def main() -> int:
             print("Unexpected or non-create actions:")
             for address, actions in sorted(unexpected.items()):
                 print(f"  {address}: {','.join(actions)}")
+                if address == "aws_lambda_function.submit_response":
+                    lambda_change = next(
+                        change
+                        for change in plan.get("resource_changes", [])
+                        if change["address"] == address
+                    )["change"]
+                    before = lambda_change.get("before") or {}
+                    after = lambda_change.get("after") or {}
+                    changed_fields = sorted(
+                        key for key in before.keys() | after.keys() if before.get(key) != after.get(key)
+                    )
+                    print(f"    changed fields: {','.join(changed_fields)}")
+                    for label, value in (("before", before), ("after", after)):
+                        variables = ((value.get("environment") or [{}])[0].get("variables") or {})
+                        print(
+                            f"    {label} Turnstile: "
+                            f"required={variables.get('REQUIRE_TURNSTILE')!r}, "
+                            f"parameter={variables.get('TURNSTILE_SECRET_PARAMETER')!r}"
+                        )
         if missing:
             print("Missing analytics creates:")
             for address in sorted(missing):
