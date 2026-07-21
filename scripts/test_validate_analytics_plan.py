@@ -1,4 +1,5 @@
 import importlib.util
+import json
 import unittest
 from pathlib import Path
 
@@ -88,6 +89,46 @@ class AnalyticsPlanValidatorTests(unittest.TestCase):
         valid, unexpected, _ = validator.validate(plan)
         self.assertFalse(valid)
         self.assertEqual(unexpected["aws_lambda_function.submit_response"], ("update",))
+    def test_accepts_exact_turnstile_policy_enforcement(self):
+        plan = plan_with(self.valid_changes())
+        base_statement = {
+            "Effect": "Allow",
+            "Action": "dynamodb:PutItem",
+            "Resource": "arn:aws:dynamodb:us-west-2:123456789012:table/optbot-responses",
+        }
+        turnstile_statement = {
+            "Effect": "Allow",
+            "Action": "ssm:GetParameter",
+            "Resource": "arn:aws:ssm:us-west-2:123456789012:parameter/optbot/turnstile/secret",
+        }
+        before = {"name": "optbot-submit-response-policy", "policy": json.dumps({"Statement": [base_statement]})}
+        after = {
+            "name": "optbot-submit-response-policy",
+            "policy": json.dumps({"Statement": [base_statement, turnstile_statement]}),
+        }
+        plan["resource_changes"].append({
+            "address": "aws_iam_policy.submit_response",
+            "change": {"actions": ["update"], "before": before, "after": after},
+        })
+        valid, unexpected, missing = validator.validate(plan)
+        self.assertTrue(valid)
+        self.assertEqual(unexpected, {})
+        self.assertEqual(missing, set())
+
+    def test_rejects_broader_submit_policy_update(self):
+        plan = plan_with(self.valid_changes())
+        before = {"policy": json.dumps({"Statement": []})}
+        after = {"policy": json.dumps({"Statement": [{
+            "Effect": "Allow", "Action": "ssm:*", "Resource": "*",
+        }]})}
+        plan["resource_changes"].append({
+            "address": "aws_iam_policy.submit_response",
+            "change": {"actions": ["update"], "before": before, "after": after},
+        })
+        valid, unexpected, _ = validator.validate(plan)
+        self.assertFalse(valid)
+        self.assertEqual(unexpected["aws_iam_policy.submit_response"], ("update",))
+
 
     def test_rejects_unexpected_create(self):
         changes = self.valid_changes()
