@@ -59,6 +59,8 @@ def _integer(value: Any) -> int | None:
         return None
     if isinstance(value, int):
         return value
+    if isinstance(value, str) and value.isascii() and value.isdecimal():
+        return int(value)
     if isinstance(value, (float, Decimal)) and math.isfinite(value) and value == int(value):
         return int(value)
     return None
