@@ -176,7 +176,11 @@ def validate(plan: dict) -> tuple[bool, dict[str, tuple[str, ...]], set[str]]:
             address == "aws_iam_role_policy.analytics_snapshot"
             and is_snapshot_curated_read_update(resource_changes[address])
         )
-        if not allowed_create and not allowed_enforcement:
+        allowed_maintenance = (
+            address == "aws_s3_object.analytics_transform_script"
+            and actions == ("update",)
+        )
+        if not allowed_create and not allowed_enforcement and not allowed_maintenance:
             unexpected[address] = actions
     has_analytics_create = any(
         address in ALLOWED_ANALYTICS_CREATES and actions == ("create",)
