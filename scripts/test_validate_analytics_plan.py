@@ -43,6 +43,7 @@ class AnalyticsPlanValidatorTests(unittest.TestCase):
             "function_name": "optbot-submit-response",
             "runtime": "python3.12",
             "source_code_hash": "old-clean-checkout-hash",
+            "last_modified": "old-timestamp",
             "environment": [{"variables": {
                 "ALLOWED_ORIGIN": "https://optbot.study",
                 "REQUIRE_TURNSTILE": "false",
@@ -53,6 +54,7 @@ class AnalyticsPlanValidatorTests(unittest.TestCase):
             "function_name": "optbot-submit-response",
             "runtime": "python3.12",
             "source_code_hash": "new-clean-checkout-hash",
+            "last_modified": "new-timestamp",
             "environment": [{"variables": {
                 "ALLOWED_ORIGIN": "https://optbot.study",
                 "REQUIRE_TURNSTILE": "true",
