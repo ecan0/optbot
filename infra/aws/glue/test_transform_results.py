@@ -94,7 +94,7 @@ class NormalizeItemTests(unittest.TestCase):
         self.assertIn("unexpected_metadata_keys", result["quality"]["quality_reasons"])
 
     def test_rejects_rating_types_and_boundaries(self):
-        for value in (0, 6, 3.5, "4", True):
+        for value in (0, 6, 3.5, True):
             with self.subTest(value=value):
                 item = valid_item()
                 item["answers"]["visual_willingness"] = value
@@ -120,6 +120,26 @@ class NormalizeItemTests(unittest.TestCase):
         self.assertIsNotNone(quantitative)
         self.assertEqual(quantitative["visual_willingness"], 5)
         self.assertIsInstance(quantitative["visual_willingness"], int)
+
+    def test_accepts_unsigned_integer_strings_from_spark(self):
+        item = valid_item()
+        item["expires_at"] = "1800000000"
+        for name in transform.RATING_KEYS:
+            item["answers"][name] = "5"
+        quantitative = self.normalize(item)["quantitative"]
+        self.assertIsNotNone(quantitative)
+        self.assertEqual(quantitative["visual_willingness"], 5)
+        self.assertIsInstance(quantitative["visual_willingness"], int)
+
+    def test_rejects_noncanonical_numeric_strings(self):
+        for value in ("5.0", "+5", "-5", "５"):
+            with self.subTest(value=value):
+                item = valid_item()
+                item["answers"]["visual_willingness"] = value
+                self.assertIn(
+                    "invalid_visual_willingness",
+                    self.normalize(item)["quality"]["quality_reasons"],
+                )
 
     def test_accepts_all_categorical_boundaries(self):
         for age in ("18_24", "25_34", "35_44", "45_54", "55_65", "prefer_not_age"):
