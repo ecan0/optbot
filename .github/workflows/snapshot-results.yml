@@ -83,10 +83,31 @@ jobs:
             done
           }
 
+          clone_table() {
+            local source="$1" target="$2" location="$3"
+            aws glue get-table --database-name "$ANALYTICS_DATABASE" --name "$source" --query Table --output json > source-table.json
+            python - "$target" "$location" <<'PY'
+          import json
+          import sys
+
+          table = json.load(open("source-table.json", encoding="utf-8"))
+          for key in (
+              "CatalogId", "DatabaseName", "CreateTime", "UpdateTime", "CreatedBy",
+              "IsRegisteredWithLakeFormation", "VersionId", "FederatedTable",
+          ):
+              table.pop(key, None)
+          table["Name"] = sys.argv[1]
+          table["StorageDescriptor"]["Location"] = sys.argv[2]
+          json.dump(table, open("table-input.json", "w", encoding="utf-8"))
+          PY
+            aws glue create-table --database-name "$ANALYTICS_DATABASE" --table-input file://table-input.json
+          }
+
           drop_staging() {
-            run_query optbot-analysis "DROP TABLE IF EXISTS $q_stage" >/dev/null || true
-            run_query optbot-analysis "DROP TABLE IF EXISTS $e_stage" >/dev/null || true
-            run_query optbot-analysis-restricted "DROP TABLE IF EXISTS $t_stage" >/dev/null || true
+            aws glue delete-table --database-name "$ANALYTICS_DATABASE" --name "$q_stage" >/dev/null 2>&1 || true
+            aws glue delete-table --database-name "$ANALYTICS_DATABASE" --name "$e_stage" >/dev/null 2>&1 || true
+            aws glue delete-table --database-name "$ANALYTICS_DATABASE" --name "$t_stage" >/dev/null 2>&1 || true
+            rm -f source-table.json table-input.json
           }
           trap drop_staging EXIT
 
@@ -98,12 +119,9 @@ jobs:
             fi
           done
 
-          run_query optbot-analysis "CREATE TABLE $q_stage LIKE responses_quantitative" >/dev/null
-          run_query optbot-analysis "ALTER TABLE $q_stage SET LOCATION 's3://$ANALYTICS_BUCKET/curated/quantitative/$SNAPSHOT_ID/'" >/dev/null
-          run_query optbot-analysis "CREATE TABLE $e_stage LIKE response_quality" >/dev/null
-          run_query optbot-analysis "ALTER TABLE $e_stage SET LOCATION 's3://$ANALYTICS_BUCKET/curated/quality/$SNAPSHOT_ID/'" >/dev/null
-          run_query optbot-analysis-restricted "CREATE TABLE $t_stage LIKE responses_restricted_text" >/dev/null
-          run_query optbot-analysis-restricted "ALTER TABLE $t_stage SET LOCATION 's3://$ANALYTICS_BUCKET/curated/restricted-text/$SNAPSHOT_ID/'" >/dev/null
+          clone_table responses_quantitative "$q_stage" "s3://$ANALYTICS_BUCKET/curated/quantitative/$SNAPSHOT_ID/"
+          clone_table response_quality "$e_stage" "s3://$ANALYTICS_BUCKET/curated/quality/$SNAPSHOT_ID/"
+          clone_table responses_restricted_text "$t_stage" "s3://$ANALYTICS_BUCKET/curated/restricted-text/$SNAPSHOT_ID/"
 
           q_count_id="$(run_query optbot-analysis "SELECT count(*) FROM $q_stage")"
           t_count_id="$(run_query optbot-analysis-restricted "SELECT count(*) FROM $t_stage")"
