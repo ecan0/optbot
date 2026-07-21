@@ -37,6 +37,54 @@ class AnalyticsPlanValidatorTests(unittest.TestCase):
                 self.assertFalse(valid)
                 self.assertEqual(unexpected[address], ("update",))
 
+    def test_accepts_exact_turnstile_enforcement_with_analytics_creates(self):
+        plan = plan_with(self.valid_changes())
+        before = {
+            "function_name": "optbot-submit-response",
+            "runtime": "python3.12",
+            "environment": [{"variables": {
+                "ALLOWED_ORIGIN": "https://optbot.study",
+                "REQUIRE_TURNSTILE": "false",
+                "TURNSTILE_SECRET_PARAMETER": "",
+            }}],
+        }
+        after = {
+            "function_name": "optbot-submit-response",
+            "runtime": "python3.12",
+            "environment": [{"variables": {
+                "ALLOWED_ORIGIN": "https://optbot.study",
+                "REQUIRE_TURNSTILE": "true",
+                "TURNSTILE_SECRET_PARAMETER": "/optbot/turnstile/secret",
+            }}],
+        }
+        plan["resource_changes"].append({
+            "address": "aws_lambda_function.submit_response",
+            "change": {"actions": ["update"], "before": before, "after": after},
+        })
+        valid, unexpected, missing = validator.validate(plan)
+        self.assertTrue(valid)
+        self.assertEqual(unexpected, {})
+        self.assertEqual(missing, set())
+
+    def test_rejects_turnstile_update_that_changes_other_lambda_configuration(self):
+        plan = plan_with(self.valid_changes())
+        plan["resource_changes"].append({
+            "address": "aws_lambda_function.submit_response",
+            "change": {
+                "actions": ["update"],
+                "before": {"timeout": 10, "environment": [{"variables": {
+                    "REQUIRE_TURNSTILE": "false", "TURNSTILE_SECRET_PARAMETER": "",
+                }}]},
+                "after": {"timeout": 30, "environment": [{"variables": {
+                    "REQUIRE_TURNSTILE": "true",
+                    "TURNSTILE_SECRET_PARAMETER": "/optbot/turnstile/secret",
+                }}]},
+            },
+        })
+        valid, unexpected, _ = validator.validate(plan)
+        self.assertFalse(valid)
+        self.assertEqual(unexpected["aws_lambda_function.submit_response"], ("update",))
+
     def test_rejects_unexpected_create(self):
         changes = self.valid_changes()
         changes["aws_s3_bucket.unreviewed"] = ("create",)

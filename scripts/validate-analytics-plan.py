@@ -30,6 +30,42 @@ ALLOWED_ANALYTICS_CREATES = {
 }
 
 
+def is_turnstile_enforcement(change: dict) -> bool:
+    details = change.get("change", {})
+    if details.get("actions") != ["update"]:
+        return False
+    before = details.get("before")
+    after = details.get("after")
+    if not isinstance(before, dict) or not isinstance(after, dict):
+        return False
+
+    before_copy = json.loads(json.dumps(before))
+    after_copy = json.loads(json.dumps(after))
+    try:
+        before_variables = before_copy["environment"][0]["variables"]
+        after_variables = after_copy["environment"][0]["variables"]
+    except (KeyError, IndexError, TypeError):
+        return False
+
+    before_copy["environment"][0]["variables"] = {
+        key: value
+        for key, value in before_variables.items()
+        if key not in {"REQUIRE_TURNSTILE", "TURNSTILE_SECRET_PARAMETER"}
+    }
+    after_copy["environment"][0]["variables"] = {
+        key: value
+        for key, value in after_variables.items()
+        if key not in {"REQUIRE_TURNSTILE", "TURNSTILE_SECRET_PARAMETER"}
+    }
+    return (
+        before_copy == after_copy
+        and before_variables.get("REQUIRE_TURNSTILE") == "false"
+        and after_variables.get("REQUIRE_TURNSTILE") == "true"
+        and before_variables.get("TURNSTILE_SECRET_PARAMETER") in ("", None)
+        and after_variables.get("TURNSTILE_SECRET_PARAMETER") == "/optbot/turnstile/secret"
+    )
+
+
 def changed_resources(plan: dict) -> dict[str, tuple[str, ...]]:
     return {
         change["address"]: tuple(change["change"]["actions"])
@@ -40,11 +76,20 @@ def changed_resources(plan: dict) -> dict[str, tuple[str, ...]]:
 
 def validate(plan: dict) -> tuple[bool, dict[str, tuple[str, ...]], set[str]]:
     changed = changed_resources(plan)
-    unexpected = {
-        address: actions
-        for address, actions in changed.items()
-        if address not in ALLOWED_ANALYTICS_CREATES or actions != ("create",)
+    resource_changes = {
+        change["address"]: change
+        for change in plan.get("resource_changes", [])
+        if change["change"]["actions"] not in (["no-op"], ["read"])
     }
+    unexpected = {}
+    for address, actions in changed.items():
+        allowed_create = address in ALLOWED_ANALYTICS_CREATES and actions == ("create",)
+        allowed_enforcement = (
+            address == "aws_lambda_function.submit_response"
+            and is_turnstile_enforcement(resource_changes[address])
+        )
+        if not allowed_create and not allowed_enforcement:
+            unexpected[address] = actions
     missing = ALLOWED_ANALYTICS_CREATES - changed.keys()
     return not unexpected and not missing, unexpected, missing
 
@@ -72,7 +117,7 @@ def main() -> int:
         print("Analytics plan rejected: production resources must remain unchanged.")
         return 1
 
-    print("Analytics plan contains only the complete allowlisted create set.")
+    print("Analytics plan contains only the complete create set and optional exact Turnstile enforcement.")
     return 0
 
 
