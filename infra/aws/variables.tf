@@ -125,6 +125,39 @@ variable "cloudfront_price_class" {
   }
 }
 
+variable "analytics_raw_retention_days" {
+  description = "Days to retain raw DynamoDB exports used by the analytics transform."
+  type        = number
+  default     = 1
+
+  validation {
+    condition     = floor(var.analytics_raw_retention_days) == var.analytics_raw_retention_days && var.analytics_raw_retention_days >= 1 && var.analytics_raw_retention_days <= 365
+    error_message = "analytics_raw_retention_days must be an integer between 1 and 365."
+  }
+}
+
+variable "analytics_snapshot_retention_days" {
+  description = "Days to retain curated analytics snapshots and Athena query results."
+  type        = number
+  default     = 30
+
+  validation {
+    condition     = floor(var.analytics_snapshot_retention_days) == var.analytics_snapshot_retention_days && var.analytics_snapshot_retention_days >= 1 && var.analytics_snapshot_retention_days <= 365
+    error_message = "analytics_snapshot_retention_days must be an integer between 1 and 365."
+  }
+}
+
+variable "analytics_query_scan_cutoff_bytes" {
+  description = "Maximum bytes Athena may scan in one analytics query."
+  type        = number
+  default     = 1073741824
+
+  validation {
+    condition     = var.analytics_query_scan_cutoff_bytes >= 10485760
+    error_message = "analytics_query_scan_cutoff_bytes must be at least 10 MiB."
+  }
+}
+
 variable "tags" {
   description = "Additional tags for AWS resources."
   type        = map(string)

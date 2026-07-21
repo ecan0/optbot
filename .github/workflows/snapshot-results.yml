@@ -1,0 +1,140 @@
+name: Snapshot Production Results
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: snapshot-production-results
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    name: Export And Publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: production
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || 'us-west-2' }}
+      AWS_ANALYTICS_ROLE_TO_ASSUME: ${{ secrets.AWS_ANALYTICS_ROLE_TO_ASSUME }}
+      ANALYTICS_BUCKET: ${{ vars.ANALYTICS_BUCKET }}
+      ANALYTICS_DATABASE: optbot_analytics
+      GLUE_JOB: optbot-results-transform
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check protected configuration
+        run: |
+          if [ -z "$AWS_ANALYTICS_ROLE_TO_ASSUME" ] || [ -z "$ANALYTICS_BUCKET" ]; then
+            echo "Set AWS_ANALYTICS_ROLE_TO_ASSUME and ANALYTICS_BUCKET on the production Environment."
+            exit 1
+          fi
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ env.AWS_ANALYTICS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Create snapshot identity
+        run: |
+          snapshot_id="$(date -u +%Y%m%dT%H%M%SZ)"
+          extracted_at_utc="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "SNAPSHOT_ID=$snapshot_id" >> "$GITHUB_ENV"
+          echo "EXTRACTED_AT_UTC=$extracted_at_utc" >> "$GITHUB_ENV"
+      - name: Run zero-read-capacity transform
+        run: |
+          arguments="$(python -c 'import json,os; print(json.dumps({"--snapshot_id":os.environ["SNAPSHOT_ID"],"--extracted_at_utc":os.environ["EXTRACTED_AT_UTC"]}))')"
+          run_id="$(aws glue start-job-run --job-name "$GLUE_JOB" --arguments "$arguments" --query JobRunId --output text)"
+          echo "GLUE_RUN_ID=$run_id" >> "$GITHUB_ENV"
+          while true; do
+            state="$(aws glue get-job-run --job-name "$GLUE_JOB" --run-id "$run_id" --query 'JobRun.JobRunState' --output text)"
+            case "$state" in
+              SUCCEEDED) break ;;
+              FAILED|STOPPED|TIMEOUT|ERROR|EXPIRED)
+                echo "Glue snapshot failed with state $state. Current Athena tables were not changed."
+                exit 1
+                ;;
+              STARTING|RUNNING|STOPPING|WAITING) sleep 20 ;;
+              *) echo "Unexpected Glue state: $state"; exit 1 ;;
+            esac
+          done
+      - name: Stage, validate, and publish snapshot
+        run: |
+          set -euo pipefail
+          suffix="$(echo "$SNAPSHOT_ID" | tr '[:upper:]' '[:lower:]')"
+          q_stage="staging_quantitative_${suffix}"
+          t_stage="staging_restricted_${suffix}"
+          e_stage="staging_quality_${suffix}"
+
+          run_query() {
+            local workgroup="$1" query="$2" execution state
+            execution="$(aws athena start-query-execution --work-group "$workgroup" --query-execution-context "Database=$ANALYTICS_DATABASE" --query-string "$query" --query QueryExecutionId --output text)"
+            while true; do
+              state="$(aws athena get-query-execution --query-execution-id "$execution" --query 'QueryExecution.Status.State' --output text)"
+              case "$state" in
+                SUCCEEDED) echo "$execution"; return ;;
+                FAILED|CANCELLED)
+                  aws athena get-query-execution --query-execution-id "$execution" --query 'QueryExecution.Status.StateChangeReason' --output text
+                  return 1
+                  ;;
+                QUEUED|RUNNING) sleep 3 ;;
+                *) echo "Unexpected Athena state: $state"; return 1 ;;
+              esac
+            done
+          }
+
+          drop_staging() {
+            run_query optbot-analysis "DROP TABLE IF EXISTS $q_stage" >/dev/null || true
+            run_query optbot-analysis "DROP TABLE IF EXISTS $e_stage" >/dev/null || true
+            run_query optbot-analysis-restricted "DROP TABLE IF EXISTS $t_stage" >/dev/null || true
+          }
+          trap drop_staging EXIT
+
+          for prefix in "curated/quantitative/$SNAPSHOT_ID/" "curated/restricted-text/$SNAPSHOT_ID/" "curated/quality/$SNAPSHOT_ID/"; do
+            count="$(aws s3api list-objects-v2 --bucket "$ANALYTICS_BUCKET" --prefix "$prefix" --query 'length(Contents[?ends_with(Key, `.parquet`)])' --output text)"
+            if [ "$count" = "0" ] || [ "$count" = "None" ]; then
+              echo "Missing Parquet output under $prefix"
+              exit 1
+            fi
+          done
+
+          run_query optbot-analysis "CREATE TABLE $q_stage LIKE responses_quantitative" >/dev/null
+          run_query optbot-analysis "ALTER TABLE $q_stage SET LOCATION 's3://$ANALYTICS_BUCKET/curated/quantitative/$SNAPSHOT_ID/'" >/dev/null
+          run_query optbot-analysis "CREATE TABLE $e_stage LIKE response_quality" >/dev/null
+          run_query optbot-analysis "ALTER TABLE $e_stage SET LOCATION 's3://$ANALYTICS_BUCKET/curated/quality/$SNAPSHOT_ID/'" >/dev/null
+          run_query optbot-analysis-restricted "CREATE TABLE $t_stage LIKE responses_restricted_text" >/dev/null
+          run_query optbot-analysis-restricted "ALTER TABLE $t_stage SET LOCATION 's3://$ANALYTICS_BUCKET/curated/restricted-text/$SNAPSHOT_ID/'" >/dev/null
+
+          q_count_id="$(run_query optbot-analysis "SELECT count(*) FROM $q_stage")"
+          t_count_id="$(run_query optbot-analysis-restricted "SELECT count(*) FROM $t_stage")"
+          quality_id="$(run_query optbot-analysis "SELECT count(*), count_if(quality_status = 'invalid') FROM $e_stage")"
+          q_count="$(aws athena get-query-results --query-execution-id "$q_count_id" --query 'ResultSet.Rows[1].Data[0].VarCharValue' --output text)"
+          t_count="$(aws athena get-query-results --query-execution-id "$t_count_id" --query 'ResultSet.Rows[1].Data[0].VarCharValue' --output text)"
+          quality_counts="$(aws athena get-query-results --query-execution-id "$quality_id" --query 'ResultSet.Rows[1].Data[*].VarCharValue' --output text)"
+          invalid_count="$(echo "$quality_counts" | awk '{print $2}')"
+          if [ "$invalid_count" != "0" ]; then
+            echo "Snapshot contains $invalid_count invalid records. Current Athena tables were not changed."
+            exit 1
+          fi
+          if [ "$q_count" != "$t_count" ]; then
+            echo "Quantitative and restricted row counts differ. Current Athena tables were not changed."
+            exit 1
+          fi
+
+          run_query optbot-analysis "ALTER TABLE responses_quantitative SET LOCATION 's3://$ANALYTICS_BUCKET/curated/quantitative/$SNAPSHOT_ID/'" >/dev/null
+          run_query optbot-analysis "ALTER TABLE response_quality SET LOCATION 's3://$ANALYTICS_BUCKET/curated/quality/$SNAPSHOT_ID/'" >/dev/null
+          run_query optbot-analysis-restricted "ALTER TABLE responses_restricted_text SET LOCATION 's3://$ANALYTICS_BUCKET/curated/restricted-text/$SNAPSHOT_ID/'" >/dev/null
+
+          current_q_id="$(run_query optbot-analysis 'SELECT count(*) FROM responses_quantitative')"
+          current_t_id="$(run_query optbot-analysis-restricted 'SELECT count(*) FROM responses_restricted_text')"
+          current_q="$(aws athena get-query-results --query-execution-id "$current_q_id" --query 'ResultSet.Rows[1].Data[0].VarCharValue' --output text)"
+          current_t="$(aws athena get-query-results --query-execution-id "$current_t_id" --query 'ResultSet.Rows[1].Data[0].VarCharValue' --output text)"
+          test "$current_q" = "$q_count"
+          test "$current_t" = "$t_count"
+
+          excluded_count="$(echo "$quality_counts" | awk '{print $1}')"
+          echo "Snapshot: $SNAPSHOT_ID"
+          echo "Glue run: $GLUE_RUN_ID"
+          echo "Valid response rows: $q_count"
+          echo "Quality/excluded rows: $excluded_count"
+          echo "Athena workgroups: optbot-analysis, optbot-analysis-restricted"
