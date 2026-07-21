@@ -133,6 +133,9 @@ jobs:
           invalid_count="$(echo "$quality_counts" | awk '{print $2}')"
           if [ "$invalid_count" != "0" ]; then
             echo "Snapshot contains $invalid_count invalid records. Current Athena tables were not changed."
+            reasons_id="$(run_query optbot-analysis "SELECT array_join(quality_reasons, ','), count(*) FROM $e_stage WHERE quality_status = 'invalid' GROUP BY quality_reasons")"
+            echo "Invalid record reason counts:"
+            aws athena get-query-results --query-execution-id "$reasons_id" --query 'ResultSet.Rows[1:].Data[*].VarCharValue' --output text
             exit 1
           fi
           if [ "$q_count" != "$t_count" ]; then
