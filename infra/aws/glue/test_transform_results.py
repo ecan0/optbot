@@ -111,6 +111,16 @@ class NormalizeItemTests(unittest.TestCase):
         self.assertEqual(quantitative["visual_willingness"], 5)
         self.assertIsInstance(quantitative["visual_willingness"], int)
 
+    def test_accepts_integral_float_values_from_spark(self):
+        item = valid_item()
+        item["expires_at"] = 1_800_000_000.0
+        for name in transform.RATING_KEYS:
+            item["answers"][name] = 5.0
+        quantitative = self.normalize(item)["quantitative"]
+        self.assertIsNotNone(quantitative)
+        self.assertEqual(quantitative["visual_willingness"], 5)
+        self.assertIsInstance(quantitative["visual_willingness"], int)
+
     def test_accepts_all_categorical_boundaries(self):
         for age in ("18_24", "25_34", "35_44", "45_54", "55_65", "prefer_not_age"):
             item = valid_item()

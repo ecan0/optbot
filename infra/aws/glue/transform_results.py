@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import math
 import sys
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -58,7 +59,7 @@ def _integer(value: Any) -> int | None:
         return None
     if isinstance(value, int):
         return value
-    if isinstance(value, Decimal) and value.is_finite() and value == value.to_integral_value():
+    if isinstance(value, (float, Decimal)) and math.isfinite(value) and value == int(value):
         return int(value)
     return None
 
