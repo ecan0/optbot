@@ -90,31 +90,29 @@ export function TurnstileWidget({ onTokenChange, resetSignal, siteKey }: Turnsti
 
     void loadTurnstile()
       .then((api) => {
-        api.ready(() => {
-          if (!active || !container) {
-            return;
+        if (!active || !container) {
+          return;
+        }
+        widgetIdRef.current = api.render(container, {
+          sitekey: siteKey,
+          action: 'survey-submit',
+          theme: 'dark',
+          size: 'flexible',
+          callback: (token) => {
+            onTokenChange(token);
+            setStatus('verified');
+          },
+          'expired-callback': () => {
+            onTokenChange(null);
+            setStatus('expired');
+          },
+          'error-callback': (errorCode) => {
+            container.dataset.turnstileError = errorCode;
+            onTokenChange(null);
+            setStatus('error');
           }
-          widgetIdRef.current = api.render(container, {
-            sitekey: siteKey,
-            action: 'survey-submit',
-            theme: 'dark',
-            size: 'flexible',
-            callback: (token) => {
-              onTokenChange(token);
-              setStatus('verified');
-            },
-            'expired-callback': () => {
-              onTokenChange(null);
-              setStatus('expired');
-            },
-            'error-callback': (errorCode) => {
-              container.dataset.turnstileError = errorCode;
-              onTokenChange(null);
-              setStatus('error');
-            }
-          });
-          setStatus('ready');
         });
+        setStatus('ready');
       })
       .catch(() => {
         if (active) {
