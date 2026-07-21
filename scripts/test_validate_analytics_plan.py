@@ -130,6 +130,43 @@ class AnalyticsPlanValidatorTests(unittest.TestCase):
         self.assertEqual(unexpected["aws_iam_policy.submit_response"], ("update",))
 
 
+    def test_accepts_exact_post_provision_curated_read_update(self):
+        existing = {"Effect": "Allow", "Action": "s3:ListBucket", "Resource": "arn:aws:s3:::optbot-analytics-123"}
+        curated = {
+            "Effect": "Allow",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::optbot-analytics-123-us-west-2/curated/*",
+        }
+        plan = plan_with({})
+        plan["resource_changes"].append({
+            "address": "aws_iam_role_policy.analytics_snapshot",
+            "change": {
+                "actions": ["update"],
+                "before": {"name": "snapshot", "policy": json.dumps({"Statement": [existing]})},
+                "after": {"name": "snapshot", "policy": json.dumps({"Statement": [existing, curated]})},
+            },
+        })
+        valid, unexpected, missing = validator.validate(plan)
+        self.assertTrue(valid)
+        self.assertEqual(unexpected, {})
+        self.assertEqual(missing, set())
+
+    def test_rejects_wildcard_post_provision_snapshot_read(self):
+        plan = plan_with({})
+        plan["resource_changes"].append({
+            "address": "aws_iam_role_policy.analytics_snapshot",
+            "change": {
+                "actions": ["update"],
+                "before": {"policy": json.dumps({"Statement": []})},
+                "after": {"policy": json.dumps({"Statement": [{
+                    "Effect": "Allow", "Action": "s3:GetObject", "Resource": "*",
+                }]})},
+            },
+        })
+        valid, unexpected, _ = validator.validate(plan)
+        self.assertFalse(valid)
+        self.assertEqual(unexpected["aws_iam_role_policy.analytics_snapshot"], ("update",))
+
     def test_rejects_unexpected_create(self):
         changes = self.valid_changes()
         changes["aws_s3_bucket.unreviewed"] = ("create",)

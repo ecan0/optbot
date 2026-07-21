@@ -109,6 +109,45 @@ def is_turnstile_policy_enforcement(change: dict) -> bool:
     )
 
 
+def is_snapshot_curated_read_update(change: dict) -> bool:
+    details = change.get("change", {})
+    if details.get("actions") != ["update"]:
+        return False
+    before = details.get("before")
+    after = details.get("after")
+    if not isinstance(before, dict) or not isinstance(after, dict):
+        return False
+    before_copy = dict(before)
+    after_copy = dict(after)
+    before_policy = before_copy.pop("policy", None)
+    after_policy = after_copy.pop("policy", None)
+    if before_copy != after_copy or not isinstance(before_policy, str) or not isinstance(after_policy, str):
+        return False
+    try:
+        before_document = json.loads(before_policy)
+        after_document = json.loads(after_policy)
+    except json.JSONDecodeError:
+        return False
+    canonical = lambda statement: json.dumps(statement, sort_keys=True)
+    before_statements = {canonical(statement) for statement in before_document.get("Statement", [])}
+    after_statements = {canonical(statement) for statement in after_document.get("Statement", [])}
+    extras = [json.loads(statement) for statement in after_statements - before_statements]
+    if not before_statements.issubset(after_statements) or len(extras) != 1:
+        return False
+    extra = extras[0]
+    actions = extra.get("Action")
+    if isinstance(actions, str):
+        actions = [actions]
+    resource = extra.get("Resource")
+    return (
+        extra.get("Effect") == "Allow"
+        and actions == ["s3:GetObject"]
+        and isinstance(resource, str)
+        and resource.startswith("arn:aws:s3:::optbot-analytics-")
+        and resource.endswith("/curated/*")
+    )
+
+
 def changed_resources(plan: dict) -> dict[str, tuple[str, ...]]:
     return {
         change["address"]: tuple(change["change"]["actions"])
@@ -133,10 +172,17 @@ def validate(plan: dict) -> tuple[bool, dict[str, tuple[str, ...]], set[str]]:
         ) or (
             address == "aws_iam_policy.submit_response"
             and is_turnstile_policy_enforcement(resource_changes[address])
+        ) or (
+            address == "aws_iam_role_policy.analytics_snapshot"
+            and is_snapshot_curated_read_update(resource_changes[address])
         )
         if not allowed_create and not allowed_enforcement:
             unexpected[address] = actions
-    missing = ALLOWED_ANALYTICS_CREATES - changed.keys()
+    has_analytics_create = any(
+        address in ALLOWED_ANALYTICS_CREATES and actions == ("create",)
+        for address, actions in changed.items()
+    )
+    missing = ALLOWED_ANALYTICS_CREATES - changed.keys() if has_analytics_create else set()
     return not unexpected and not missing, unexpected, missing
 
 
