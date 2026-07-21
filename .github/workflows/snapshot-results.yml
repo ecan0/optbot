@@ -90,12 +90,13 @@ jobs:
           import json
           import sys
 
-          table = json.load(open("source-table.json", encoding="utf-8"))
-          for key in (
-              "CatalogId", "DatabaseName", "CreateTime", "UpdateTime", "CreatedBy",
-              "IsRegisteredWithLakeFormation", "VersionId", "FederatedTable",
-          ):
-              table.pop(key, None)
+          source = json.load(open("source-table.json", encoding="utf-8"))
+          allowed = {
+              "Name", "Description", "Owner", "LastAccessTime", "LastAnalyzedTime",
+              "Retention", "StorageDescriptor", "PartitionKeys", "ViewOriginalText",
+              "ViewExpandedText", "TableType", "Parameters", "TargetTable", "ViewDefinition",
+          }
+          table = {key: value for key, value in source.items() if key in allowed}
           table["Name"] = sys.argv[1]
           table["StorageDescriptor"]["Location"] = sys.argv[2]
           json.dump(table, open("table-input.json", "w", encoding="utf-8"))
