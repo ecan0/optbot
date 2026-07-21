@@ -74,11 +74,11 @@ jobs:
               case "$state" in
                 SUCCEEDED) echo "$execution"; return ;;
                 FAILED|CANCELLED)
-                  aws athena get-query-execution --query-execution-id "$execution" --query 'QueryExecution.Status.StateChangeReason' --output text
+                  aws athena get-query-execution --query-execution-id "$execution" --query 'QueryExecution.Status.StateChangeReason' --output text >&2
                   return 1
                   ;;
                 QUEUED|RUNNING) sleep 3 ;;
-                *) echo "Unexpected Athena state: $state"; return 1 ;;
+                *) echo "Unexpected Athena state: $state" >&2; return 1 ;;
               esac
             done
           }
