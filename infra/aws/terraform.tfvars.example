@@ -15,6 +15,10 @@ enable_dynamodb_pitr         = true
 api_throttle_burst_limit     = 10
 api_throttle_rate_limit      = 2
 
+analytics_raw_retention_days      = 1
+analytics_snapshot_retention_days = 30
+analytics_query_scan_cutoff_bytes = 1073741824
+
 tags = {
   Environment = "prod"
   Workload    = "study-site"

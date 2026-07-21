@@ -1,0 +1,86 @@
+name: Apply Production Analytics
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: terraform-apply-production
+  cancel-in-progress: false
+
+env:
+  TF_IN_AUTOMATION: true
+
+jobs:
+  apply:
+    name: Review And Apply
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || 'us-west-2' }}
+      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+      TF_BACKEND_CONFIG_B64: ${{ secrets.TF_BACKEND_CONFIG_B64 }}
+      TF_VAR_acm_certificate_arn: ${{ secrets.TF_VAR_ACM_CERTIFICATE_ARN }}
+      TF_VAR_require_turnstile: "true"
+      TF_VAR_turnstile_secret_parameter_name: /optbot/turnstile/secret
+    defaults:
+      run:
+        working-directory: infra/aws
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check protected configuration
+        run: |
+          if [ -z "$AWS_ROLE_TO_ASSUME" ] || [ -z "$TF_BACKEND_CONFIG_B64" ] || [ -z "$TF_VAR_acm_certificate_arn" ]; then
+            echo "Production analytics apply requires the OIDC role, remote state configuration, and certificate variable."
+            exit 1
+          fi
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+      - uses: hashicorp/setup-terraform@v4
+      - name: Terraform init and validate
+        run: |
+          echo "$TF_BACKEND_CONFIG_B64" | base64 -d > backend.hcl
+          terraform init -input=false -backend-config=backend.hcl > terraform-init.log 2>&1
+          terraform validate
+      - name: Create constrained plan
+        run: |
+          terraform plan -input=false -no-color -var-file=terraform.tfvars.example -var "acm_certificate_arn=$TF_VAR_acm_certificate_arn" -out=tfplan > terraform-plan.log 2>&1
+          terraform show -json tfplan > tfplan.json
+          python ../../scripts/validate-analytics-plan.py tfplan.json
+      - name: Apply reviewed plan
+        run: |
+          if ! terraform apply -input=false -auto-approve tfplan > terraform-apply.log 2>&1; then
+            echo "Terraform apply failed; private Terraform output remains suppressed."
+            exit 1
+          fi
+      - name: Verify production invariants and analytics controls
+        run: |
+          table_name="$(terraform output -raw responses_table_name)"
+          bucket="$(terraform output -raw analytics_bucket_name)"
+          job="$(terraform output -raw analytics_glue_job_name)"
+
+          test "$(aws lambda get-function-configuration --function-name optbot-submit-response --query 'Environment.Variables.REQUIRE_TURNSTILE' --output text)" = "true"
+          test "$(aws dynamodb describe-time-to-live --table-name "$table_name" --query 'TimeToLiveDescription.TimeToLiveStatus' --output text)" = "ENABLED"
+          test "$(aws dynamodb describe-continuous-backups --table-name "$table_name" --query 'ContinuousBackupsDescription.PointInTimeRecoveryDescription.PointInTimeRecoveryStatus' --output text)" = "ENABLED"
+          test "$(aws s3api get-public-access-block --bucket "$bucket" --query 'PublicAccessBlockConfiguration.[BlockPublicAcls,IgnorePublicAcls,BlockPublicPolicy,RestrictPublicBuckets]' --output text)" = $'True\tTrue\tTrue\tTrue'
+          test "$(aws s3api get-bucket-encryption --bucket "$bucket" --query 'ServerSideEncryptionConfiguration.Rules[0].ApplyServerSideEncryptionByDefault.SSEAlgorithm' --output text)" = "AES256"
+          test "$(aws s3api get-bucket-lifecycle-configuration --bucket "$bucket" --query 'length(Rules)' --output text)" = "3"
+          test "$(aws athena get-work-group --work-group optbot-analysis --query 'WorkGroup.Configuration.EnforceWorkGroupConfiguration' --output text)" = "True"
+          test "$(aws athena get-work-group --work-group optbot-analysis-restricted --query 'WorkGroup.Configuration.EnforceWorkGroupConfiguration' --output text)" = "True"
+          test "$(aws glue get-job --job-name "$job" --query 'Job.Role' --output text)" = "$(terraform output -raw analytics_transform_role_arn)"
+          policy="$(aws iam get-role-policy --role-name optbot-analytics-transform-role --policy-name optbot-analytics-transform --query PolicyDocument --output json)"
+          if echo "$policy" | python -c 'import json,sys; p=json.load(sys.stdin); denied={"dynamodb:scan","dynamodb:query","dynamodb:getitem","dynamodb:putitem","dynamodb:updateitem","dynamodb:deleteitem"}; actions={a.lower() for s in p["Statement"] for a in ([s["Action"]] if isinstance(s["Action"],str) else s["Action"])}; raise SystemExit(1 if actions & denied else 0)'; then
+            echo "Analytics controls verified without changing the submission path."
+          else
+            echo "Analytics transform role contains a prohibited DynamoDB data-plane action."
+            exit 1
+          fi
+      - name: Remove private plan material
+        if: always()
+        run: rm -f backend.hcl tfplan tfplan.json terraform-init.log terraform-plan.log terraform-apply.log
