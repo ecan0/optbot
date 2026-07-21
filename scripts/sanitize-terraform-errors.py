@@ -21,8 +21,10 @@ def main() -> int:
         return 2
     found = False
     for line in Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace").splitlines():
-        if line.startswith("Error: "):
-            print(sanitize(line))
+        line = re.sub(r"\x1b\[[0-9;]*m", "", line)
+        marker = line.find("Error: ")
+        if marker >= 0:
+            print(sanitize(line[marker:]))
             found = True
     if not found:
         print("Terraform apply failed without a structured error message.")
