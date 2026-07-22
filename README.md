@@ -1,18 +1,35 @@
-# OptBot
+<p align="center">
+  <a href="https://optbot.study/">
+    <img src="public/social-preview.svg" alt="Optbot Privacy Notice Study" width="100%" />
+  </a>
+</p>
 
-OptBot is a study website for collecting short guided survey responses at `optbot.study`.
+# Optbot Privacy Notice Study
 
-The app presents participants with a focused multi-step flow, validates response shape in the browser, and can submit completed responses to a small serverless API. The current survey content is intentionally easy to replace as the study design develops.
+[![CI](https://github.com/ecan0/optbot/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ecan0/optbot/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/ecan0/optbot?display_name=tag&sort=semver)](https://github.com/ecan0/optbot/releases/latest)
+[![Live study](https://img.shields.io/badge/live-optbot.study-9db7ff)](https://optbot.study/)
+[![Node.js 22](https://img.shields.io/badge/Node.js-22-5FA04E?logo=nodedotjs&logoColor=white)](https://nodejs.org/en/about/previous-releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-f3f2ed)](LICENSE)
 
-## App
+Optbot is a research survey that compares two privacy notices for a simulated artificial intelligence assistant. Participants review both notices in randomized order, answer structured questions, and submit one validated response.
 
-- React, Vite, and TypeScript
-- Guided survey flow in `src/App.tsx`
-- Study questions in `src/studyContent.ts`
-- Shared response schema in `src/schema.ts`
-- Preview mode when no API endpoint is configured
+Visit the [live privacy notice study](https://optbot.study/) or use this repository to review, test, and deploy the application.
 
-## Run Locally
+## What the project does
+
+The application supports a focused research workflow:
+
+- Presents consent, study instructions, two privacy notices, and follow-up questions
+- Randomizes notice order per browser session to reduce presentation-order bias
+- Validates required answers and response shape before submission
+- Runs without submission in preview mode
+- Protects live submissions with Cloudflare Turnstile
+- Deploys a static React application and a narrow serverless response API on Amazon Web Services (AWS)
+
+## Run the study locally
+
+Install Node.js 22 and npm, then run:
 
 ```bash
 npm install
@@ -20,84 +37,39 @@ cp .env.example .env.local
 npm run dev
 ```
 
-By default, local runs do not send responses anywhere. Set `VITE_PUBLIC_API_BASE_URL` in `.env.local` to test against a deployed API.
+Vite prints the local address. Preview mode is the default and never submits responses.
 
-## Build
+For setup details, read [Run Optbot locally](docs/getting-started.md). For environment variables, read [Configure collection and deployment](docs/configuration.md).
 
-```bash
-npm run build
-```
+## Documentation
 
-The production build is written to `dist/`.
+The [documentation index](docs/README.md) groups guides by task. Start with:
 
-## Configuration
+- [Understand the system architecture](docs/architecture.md)
+- [Develop and verify changes](docs/development.md)
+- [Configure continuous integration and releases](docs/ci-and-release.md)
+- [Deploy Optbot on AWS](docs/aws-deployment.md)
+- [Protect the public repository boundary](docs/public-repo-boundary.md)
 
-| Variable | Purpose |
-| --- | --- |
-| `VITE_PUBLIC_SITE_URL` | Public site URL, normally `https://optbot.study`. |
-| `VITE_PUBLIC_API_BASE_URL` | API base URL for response submission. Required for live collection; never contacted in preview mode. |
-| `VITE_PUBLIC_COLLECTION_MODE` | Explicit response gate: `preview` never sends responses; `live` requires an API endpoint and Turnstile site key. Defaults to `preview`. |
-| `VITE_PUBLIC_SURVEY_ID` | Stable identifier for the current survey version. |
-| `VITE_PUBLIC_TURNSTILE_SITE_KEY` | Public Turnstile site key. Required only for live collection. |
+## Technology
 
-Only `VITE_` variables are exposed to the browser. Do not put secrets in frontend environment files.
+Optbot uses React 19, TypeScript, Vite, XState, Zod, GSAP, Vitest, Terraform, and AWS serverless services. The production path uses CloudFront, Amazon S3, API Gateway, AWS Lambda, and DynamoDB.
 
-## Checks
+## Contributing
 
-Run the same app checks used by CI:
+Create a short-lived branch and open a pull request against `main`. Run the required checks before requesting review:
 
 ```bash
 npm run check
-npm run audit:deps
 npm run check:public
-terraform -chdir=infra/aws fmt -check
-terraform -chdir=infra/aws init -backend=false
-terraform -chdir=infra/aws validate
 ```
 
-CI also includes a manual Terraform plan workflow and a production-only Turnstile apply workflow protected by the `production` Environment. See [docs/ci-and-release.md](docs/ci-and-release.md).
+Infrastructure changes also require the Terraform checks in [Develop and verify changes](docs/development.md). Never commit participant responses, credentials, Terraform state, or private infrastructure values.
 
-## Cloud Delivery
+## License
 
-CI is structured for a cloud project without deploying by default:
+Copyright (c) 2026 Eric Candela. Original project code and documentation are available under the [MIT License](LICENSE).
 
-- Pull requests run app, dependency, public-boundary, and Terraform validation checks.
-- Successful builds upload a short-lived `dist/` artifact.
-- Deployable versions are annotated SemVer tags such as `v0.1.0`.
-- Terraform plans are manual and use GitHub OIDC.
-- Static site deployment is manual, tag-based, and should be protected by a GitHub Environment.
+Third-party software, fonts, icons, and research materials remain subject to their respective terms. Participant responses and other research data aren't included in this license.
 
-See [docs/git-strategy.md](docs/git-strategy.md), [docs/cloud-delivery.md](docs/cloud-delivery.md), and [docs/ci-and-release.md](docs/ci-and-release.md).
-
-## Deploy
-
-Static assets can be hosted from any SPA-capable static origin. This repo includes an AWS deployment path in `infra/aws` for:
-
-- S3 and CloudFront for the site
-- API Gateway and Lambda for `POST /v1/responses`
-- DynamoDB with TTL for response storage
-- Turnstile enforcement with the private secret stored in SSM Parameter Store
-
-See [docs/aws-deployment.md](docs/aws-deployment.md) for the full deployment flow.
-
-After infrastructure exists, deploy the latest build with:
-
-```bash
-npm run build
-AWS_REGION=us-west-2 SITE_BUCKET=<bucket-name> CLOUDFRONT_DISTRIBUTION_ID=<distribution-id> ./scripts/deploy-static.sh
-```
-
-## Project Layout
-
-```text
-src/                  Survey app source
-infra/aws/            Optional AWS deployment code
-docs/                 Architecture, deployment, and repo-boundary notes
-scripts/              Deployment helpers
-```
-
-## Data Boundary
-
-Do not commit participant responses, Terraform state, real credentials, private infrastructure details, or local environment files. Keep public study content and deployable app code here; keep operational secrets outside the repository.
-
-See [docs/public-repo-boundary.md](docs/public-repo-boundary.md) before publishing or adding deployment-specific configuration.
+Use [`CITATION.cff`](CITATION.cff) to cite the software. Record academic sources and adapted research materials in [Document research sources](docs/research-sources.md).

@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this software, cite it using the metadata in this file."
+type: software
+title: "Optbot Privacy Notice Study"
+authors:
+  - family-names: "Candela"
+    given-names: "Eric"
+repository-code: "https://github.com/ecan0/optbot"
+url: "https://optbot.study/"
+license: MIT
