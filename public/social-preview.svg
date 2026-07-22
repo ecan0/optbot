@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">Optbot Privacy Notice Study</title>
+  <desc id="description">Review two privacy notices for a simulated AI assistant.</desc>
+
+  <rect width="1200" height="630" fill="#11110f"/>
+
+  <g font-family="Instrument Sans, Arial, sans-serif">
+    <g transform="translate(72 72)">
+      <g transform="scale(2.25)" fill="none" stroke="#9db7ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+        <path d="m9 12 2 2 4-4"/>
+      </g>
+      <text x="70" y="32" fill="#f3f2ed" font-size="30" font-weight="650" letter-spacing="-0.3">Optbot</text>
+      <text x="70" y="57" fill="#aaa8a0" font-size="18">Privacy notice study</text>
+    </g>
+
+    <text x="72" y="255" fill="#f3f2ed" font-size="58" font-weight="650" letter-spacing="-1.8">
+      <tspan x="72" dy="0">Privacy notice</tspan>
+      <tspan x="72" dy="66">study</tspan>
+    </text>
+    <text x="72" y="398" fill="#aaa8a0" font-size="24">
+      <tspan x="72" dy="0">Review two privacy notices for a</tspan>
+      <tspan x="72" dy="35">simulated AI assistant.</tspan>
+    </text>
+
+    <g transform="translate(580 174)">
+      <rect x="0" y="0" width="248" height="360" rx="10" fill="#1a1a18" stroke="#353532" stroke-width="2"/>
+      <rect x="276" y="0" width="248" height="360" rx="10" fill="#1a1a18" stroke="#353532" stroke-width="2"/>
+
+      <g transform="translate(28 30)">
+        <rect width="48" height="7" rx="3.5" fill="#9db7ff"/>
+        <rect y="24" width="142" height="9" rx="4.5" fill="#f3f2ed"/>
+        <rect y="45" width="188" height="6" rx="3" fill="#aaa8a0"/>
+        <rect y="62" width="170" height="6" rx="3" fill="#aaa8a0"/>
+        <line x1="0" y1="92" x2="192" y2="92" stroke="#353532" stroke-width="2"/>
+        <circle cx="8" cy="120" r="8" fill="none" stroke="#9db7ff" stroke-width="2"/>
+        <rect x="28" y="115" width="132" height="7" rx="3.5" fill="#cbc9c1"/>
+        <rect x="28" y="132" width="164" height="5" rx="2.5" fill="#51514c"/>
+        <circle cx="8" cy="169" r="8" fill="none" stroke="#9db7ff" stroke-width="2"/>
+        <rect x="28" y="164" width="118" height="7" rx="3.5" fill="#cbc9c1"/>
+        <rect x="28" y="181" width="150" height="5" rx="2.5" fill="#51514c"/>
+        <circle cx="8" cy="218" r="8" fill="none" stroke="#9db7ff" stroke-width="2"/>
+        <rect x="28" y="213" width="145" height="7" rx="3.5" fill="#cbc9c1"/>
+        <rect x="28" y="230" width="160" height="5" rx="2.5" fill="#51514c"/>
+        <rect y="271" width="192" height="1" fill="#353532"/>
+        <rect y="293" width="78" height="6" rx="3" fill="#51514c"/>
+      </g>
+
+      <g transform="translate(304 30)">
+        <rect width="48" height="7" rx="3.5" fill="#9db7ff"/>
+        <rect y="24" width="142" height="9" rx="4.5" fill="#f3f2ed"/>
+        <rect y="45" width="188" height="6" rx="3" fill="#aaa8a0"/>
+        <rect y="62" width="170" height="6" rx="3" fill="#aaa8a0"/>
+        <line x1="0" y1="92" x2="192" y2="92" stroke="#353532" stroke-width="2"/>
+        <rect y="115" width="184" height="6" rx="3" fill="#cbc9c1"/>
+        <rect y="132" width="192" height="6" rx="3" fill="#aaa8a0"/>
+        <rect y="149" width="176" height="6" rx="3" fill="#aaa8a0"/>
+        <rect y="166" width="188" height="6" rx="3" fill="#aaa8a0"/>
+        <rect y="183" width="150" height="6" rx="3" fill="#aaa8a0"/>
+        <rect y="217" width="180" height="6" rx="3" fill="#cbc9c1"/>
+        <rect y="234" width="192" height="6" rx="3" fill="#aaa8a0"/>
+        <rect y="251" width="170" height="6" rx="3" fill="#aaa8a0"/>
+        <rect y="268" width="186" height="6" rx="3" fill="#aaa8a0"/>
+        <rect y="293" width="78" height="6" rx="3" fill="#51514c"/>
+      </g>
+    </g>
+  </g>
+</svg>
