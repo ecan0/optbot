@@ -260,6 +260,7 @@ resource "aws_lambda_function" "submit_response" {
       RETENTION_DAYS             = tostring(var.retention_days)
       REQUIRE_TURNSTILE          = var.require_turnstile ? "true" : "false"
       TURNSTILE_SECRET_PARAMETER = var.turnstile_secret_parameter_name
+      ACCEPT_RESPONSES           = var.accept_responses ? "true" : "false"
     }
   }
 
