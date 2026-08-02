@@ -55,7 +55,10 @@ jobs:
           terraform validate
       - name: Create constrained closure plan
         run: |
-          terraform plan -input=false -no-color -var-file=terraform.tfvars.example -var "acm_certificate_arn=$TF_VAR_acm_certificate_arn" -var "require_turnstile=true" -var "turnstile_secret_parameter_name=/optbot/turnstile/secret" -var "accept_responses=false" -out=tfplan > terraform-plan.log 2>&1
+          if ! terraform plan -input=false -no-color -var-file=terraform.tfvars.example -var "acm_certificate_arn=$TF_VAR_acm_certificate_arn" -var "require_turnstile=true" -var "turnstile_secret_parameter_name=/optbot/turnstile/secret" -var "accept_responses=false" -out=tfplan > terraform-plan.log 2>&1; then
+            python ../../scripts/sanitize-terraform-errors.py terraform-plan.log
+            exit 1
+          fi
           terraform show -json tfplan > tfplan.json
           python ../../scripts/validate-collection-close-plan.py tfplan.json
       - name: Apply reviewed closure plan
