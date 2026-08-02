@@ -1,0 +1,28 @@
+{
+  "snapshot_id": "YYYYMMDDTHHMMSSZ",
+  "extracted_at_utc": "YYYY-MM-DDTHH:MM:SSZ",
+  "glue_run_id": "private-run-identifier",
+  "quantitative_row_count": 0,
+  "restricted_row_count": 0,
+  "quality_counts": {
+    "valid": 0,
+    "excluded_expired": 0,
+    "invalid": 0
+  },
+  "analysis_schema_version": "optbot-analysis-v1",
+  "source_git_sha": "40-character-commit-sha",
+  "release_sha": "optional-release-commit-sha-or-null",
+  "query_versions": {
+    "00_snapshot_contract.sql": "1",
+    "01_quality_and_n.sql": "1",
+    "02_assignment_and_order_balance.sql": "1",
+    "03_rating_distributions.sql": "1",
+    "04_paired_deltas.sql": "1",
+    "05_categorical_outcomes.sql": "1"
+  },
+  "source_binding": {
+    "quantitative_table": "snapshot_bound_quantitative_table",
+    "quality_table": "snapshot_bound_quality_table",
+    "immutable_location_verified": false
+  }
+}
