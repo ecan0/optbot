@@ -64,7 +64,7 @@ jobs:
       - name: Apply reviewed closure plan
         run: |
           if ! terraform apply -input=false -auto-approve tfplan > terraform-apply.log 2>&1; then
-            echo "Terraform apply failed; private Terraform output remains suppressed."
+            python ../../scripts/sanitize-terraform-errors.py terraform-apply.log
             exit 1
           fi
       - name: Verify source-side closure and retained protections
