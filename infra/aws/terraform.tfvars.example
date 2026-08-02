@@ -10,6 +10,9 @@ acm_certificate_arn = ""
 require_turnstile               = false
 turnstile_secret_parameter_name = ""
 
+# Keep closed unless a separately reviewed production apply explicitly reopens collection.
+accept_responses = false
+
 retention_days               = 365
 enable_dynamodb_pitr         = true
 api_throttle_burst_limit     = 10

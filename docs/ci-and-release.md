@@ -72,18 +72,13 @@ For `dev`, `VITE_PUBLIC_SITE_URL` must not be `https://optbot.study`. Use a dev 
 ## Release Path
 
 1. Merge app or infrastructure changes after CI passes.
-2. Run the manual Terraform plan with remote state and Turnstile enabled.
-3. Review the sanitized plan. It must contain only in-place Lambda and IAM policy updates.
-4. Run `.github/workflows/terraform-apply-turnstile.yml` through the protected `production` Environment. It applies the exact constrained plan and verifies the Lambda configuration without exposing private plan output.
-5. Create and push an annotated SemVer tag from `main`.
-6. Let the release workflow create the GitHub Release artifact.
-7. Immediately before deployment, set `VITE_PUBLIC_COLLECTION_MODE=live` and the public Turnstile site key on the `production` Environment.
-8. Run the protected static deployment for the release tag.
+2. Create and push an annotated SemVer tag from `main`.
+3. Let the release workflow create the GitHub Release artifact.
+4. Immediately before deployment, set `VITE_PUBLIC_COLLECTION_MODE=live` and the public Turnstile site key on the `production` Environment only for an approved collection period.
+5. Run the protected static deployment for the release tag.
 
-For survey iteration before public launch, production SemVer tags below `v1.0.0` deploy to `optbot.study` as non-collecting live-site previews. The deploy workflow requires `VITE_PUBLIC_COLLECTION_MODE=preview` for these tags.
-
-The `v1.0.0` tag starts the public survey lifecycle. Production deploys at `v1.0.0` and later require `VITE_PUBLIC_COLLECTION_MODE=live`, a configured response API, and a public Turnstile site key. The workflow also injects the checked-out release ref and commit SHA into the frontend build.
+For collection shutdown, first run `.github/workflows/close-production-collection.yml` through the protected `production` Environment. It accepts only an in-place Lambda update that sets `ACCEPT_RESPONSES=false`, rejects API requests before validation, Turnstile verification, or DynamoDB writes, and verifies Turnstile, DynamoDB TTL, and PITR remain enabled. Then set `VITE_PUBLIC_COLLECTION_MODE=preview`, create a new immutable release tag, and run the protected static deployment. Production tags may deploy this read-only experience at any release version; `live` remains disallowed for tags below `v1.0.0`.
 
 ## Cost Guardrails
 
-No AWS cost starts from CI alone. Costs begin when Terraform is applied, remote state resources are created, static assets are uploaded, or CloudFront invalidations are requested. The production Turnstile apply is manual, constrained to two reviewed in-place resource updates, and gated by the required reviewer on the `production` Environment.
+No AWS cost starts from CI alone. Costs begin when Terraform is applied, remote state resources are created, static assets are uploaded, or CloudFront invalidations are requested. Production Terraform apply workflows are manual, constrained to their declared resource changes, and gated by the required reviewer on the `production` Environment.

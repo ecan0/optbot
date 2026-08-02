@@ -20,6 +20,7 @@ ALLOWED_ORIGIN = os.environ.get("ALLOWED_ORIGIN", "https://optbot.study")
 TABLE_NAME = os.environ["RESPONSES_TABLE_NAME"]
 RETENTION_DAYS = int(os.environ.get("RETENTION_DAYS", "365"))
 REQUIRE_TURNSTILE = os.environ.get("REQUIRE_TURNSTILE", "false").lower() == "true"
+ACCEPT_RESPONSES = os.environ.get("ACCEPT_RESPONSES", "false").lower() == "true"
 TURNSTILE_SECRET_PARAMETER = os.environ.get("TURNSTILE_SECRET_PARAMETER", "")
 TURNSTILE_ACTION = "survey-submit"
 TURNSTILE_HOSTNAME = urllib.parse.urlparse(ALLOWED_ORIGIN).hostname or ""
@@ -134,6 +135,9 @@ def handler(event, _context):
     origin = get_header(event.get("headers"), "origin") or ALLOWED_ORIGIN
     if origin != ALLOWED_ORIGIN:
         return response(403, {"message": "origin not allowed"}, origin="null")
+
+    if not ACCEPT_RESPONSES:
+        return response(410, {"message": "survey collection is closed"}, origin=origin)
 
     try:
         payload = parse_body(event)

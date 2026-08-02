@@ -50,6 +50,7 @@ class SubmitResponseTests(unittest.TestCase):
         submit_response.REQUIRE_TURNSTILE = True
         submit_response.TURNSTILE_SECRET_PARAMETER = "/optbot/turnstile/secret"
         submit_response.TURNSTILE_SECRET = None
+        submit_response.ACCEPT_RESPONSES = True
 
     @staticmethod
     def event(token="verified-token", origin="https://optbot.study"):
@@ -79,6 +80,16 @@ class SubmitResponseTests(unittest.TestCase):
 
         self.assertEqual(result["statusCode"], 403)
         self.assertEqual(result["headers"]["access-control-allow-origin"], "null")
+        fake_ssm.get_parameter.assert_not_called()
+        fake_table.put_item.assert_not_called()
+
+    def test_rejects_closed_collection_before_verification_or_storage(self):
+        submit_response.ACCEPT_RESPONSES = False
+
+        result = submit_response.handler(self.event(), None)
+
+        self.assertEqual(result["statusCode"], 410)
+        self.assertEqual(json.loads(result["body"])["message"], "survey collection is closed")
         fake_ssm.get_parameter.assert_not_called()
         fake_table.put_item.assert_not_called()
 

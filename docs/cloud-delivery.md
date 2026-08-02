@@ -71,7 +71,7 @@ Example policies live under `infra/aws`:
 - `plan-policy.example.json`
 - `deploy-static-policy.example.json`
 
-The deploy policy is intentionally limited to static asset upload and CloudFront invalidation. Terraform apply needs broader permissions. The repository's production Turnstile apply workflow is manual, uses the protected `production` Environment, and rejects any plan beyond the expected in-place Lambda and IAM updates.
+The deploy policy is intentionally limited to static asset upload and CloudFront invalidation. Terraform apply needs broader permissions. The production collection-close workflow is manual, uses the protected `production` Environment, and rejects every plan except the required in-place submission-Lambda closure.
 
 ## Release Tags
 
