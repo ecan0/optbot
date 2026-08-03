@@ -10,7 +10,7 @@ Copy `.env.example` to `.env.local` for local development. Vite exposes every `V
 | --- | --- |
 | `VITE_PUBLIC_SITE_URL` | Public site URL. Production uses `https://optbot.study`. |
 | `VITE_PUBLIC_API_BASE_URL` | Base URL for the response API. Live collection requires this value. |
-| `VITE_PUBLIC_COLLECTION_MODE` | `preview` blocks submission. `live` requires the API URL and Turnstile site key. |
+| `VITE_PUBLIC_COLLECTION_MODE` | `preview` blocks browser submission and presents the deployed site as read-only. `live` requires the API URL and Turnstile site key; it is only valid during an approved collection period. |
 | `VITE_PUBLIC_SURVEY_ID` | Stable identifier for the survey version. The default is `optbot-study-v1`. |
 | `VITE_PUBLIC_TURNSTILE_SITE_KEY` | Public Cloudflare Turnstile site key. Live collection requires this value. |
 

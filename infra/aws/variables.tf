@@ -57,6 +57,12 @@ variable "require_turnstile" {
   default     = false
 }
 
+variable "accept_responses" {
+  description = "Whether the submission Lambda may write new survey responses. Defaults to closed; reopening requires an explicit reviewed production apply."
+  type        = bool
+  default     = false
+}
+
 variable "turnstile_secret_parameter_name" {
   description = "Optional SSM SecureString parameter name that stores the Turnstile secret, for example /optbot/turnstile/secret."
   type        = string
