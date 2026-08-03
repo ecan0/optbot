@@ -11,7 +11,7 @@
   },
   "analysis_schema_version": "optbot-analysis-v1",
   "source_git_sha": "40-character-commit-sha",
-  "release_sha": "optional-release-commit-sha-or-null",
+  "release_sha": null,
   "query_versions": {
     "00_snapshot_contract.sql": "1",
     "01_quality_and_n.sql": "1",

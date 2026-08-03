@@ -22,6 +22,7 @@ class RenderQueriesTests(unittest.TestCase):
             "quality_counts": {"valid": 1, "excluded_expired": 0, "invalid": 0},
             "analysis_schema_version": "optbot-analysis-v1",
             "source_git_sha": "a" * 40,
+            "release_sha": None,
             "query_versions": {name: "1" for name in renderer.REQUIRED_QUERY_FILES},
             "source_binding": {
                 "quantitative_table": "final_snapshot_quantitative",
@@ -51,6 +52,15 @@ class RenderQueriesTests(unittest.TestCase):
             path = Path(directory) / "manifest.json"
             path.write_text(json.dumps(manifest), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "moving-table"):
+                renderer.load_manifest(path)
+
+    def test_rejects_current_table_even_when_marked_immutable(self):
+        manifest = self.manifest()
+        manifest["source_binding"]["quantitative_table"] = "responses_quantitative"
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "manifest.json"
+            path.write_text(json.dumps(manifest), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "moving current table"):
                 renderer.load_manifest(path)
 
 
