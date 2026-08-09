@@ -5,10 +5,9 @@ OptBot is an archived CYBER 215 academic research project. Data collection is cl
 ## Retained public record
 
 - [Final paper](../publications/Data%20In%2C%20or%20Privacy%20Out_.pdf)
-- [Aggregate quantitative results](../publications/optbot-quantitative-results-20260803.zip)
 - Source code, public study materials, and documentation
 
-The results package contains only aggregate findings. It does not contain response identifiers, participant-level records, raw submissions, written responses, credentials, Terraform state, or private infrastructure details.
+The repository retains only the final paper as its public results artifact. Aggregate results, participant-level records, raw submissions, written responses, credentials, Terraform state, and private infrastructure details remain outside the public repository.
 
 ## Retained private record
 

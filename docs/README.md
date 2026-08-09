@@ -31,4 +31,4 @@ These pages cover protected delivery workflows:
 
 ## Archived project record
 
-- [Review the archived academic project](archive.md): access the final paper and aggregate-only results, understand retained safeguards, and avoid reactivating collection without a new approved review
+- [Review the archived academic project](archive.md): access the final paper, understand retained safeguards, and avoid reactivating collection without a new approved review
