@@ -16,6 +16,8 @@ Optbot is a research survey that compares two privacy notices for a simulated ar
 
 Visit the [live privacy notice study](https://optbot.study/) or use this repository to review, test, and deploy the application.
 
+> **Archived academic project:** Data collection is closed. The public site remains online as a read-only demonstration. Read the [archive record](docs/archive.md) and access the [final paper and aggregate results](publications/README.md).
+
 ## What the project does
 
 The application supports a focused research workflow:

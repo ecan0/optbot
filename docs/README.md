@@ -28,3 +28,7 @@ These pages cover protected delivery workflows:
 - [Use the Git strategy](git-strategy.md): create branches, merge changes, and tag releases
 - [Deploy Optbot on AWS](aws-deployment.md): provision infrastructure and attach `optbot.study`
 - [Operate the AWS infrastructure](../infra/aws/README.md): configure Terraform resources and backend state
+
+## Archived project record
+
+- [Review the archived academic project](archive.md): access the final paper and aggregate-only results, understand retained safeguards, and avoid reactivating collection without a new approved review
