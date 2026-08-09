@@ -143,9 +143,10 @@ resource "aws_s3_bucket_policy" "site" {
 }
 
 resource "aws_dynamodb_table" "responses" {
-  name         = local.responses_table_name
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "response_id"
+  name                        = local.responses_table_name
+  billing_mode                = "PAY_PER_REQUEST"
+  hash_key                    = "response_id"
+  deletion_protection_enabled = true
 
   attribute {
     name = "response_id"
