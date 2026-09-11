@@ -7,6 +7,8 @@
 # Optbot privacy notice study
 
 [![CI](https://github.com/ecan0/optbot/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ecan0/optbot/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/ecan0/optbot?display_name=tag&sort=semver)](https://github.com/ecan0/optbot/releases/latest)
+[![Node.js 22](https://img.shields.io/badge/Node.js-22-5FA04E?logo=nodedotjs&logoColor=white)](https://nodejs.org/en/about/previous-releases)
 [![Read-only demo](https://img.shields.io/badge/demo-optbot.study-9db7ff)](https://optbot.study/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-f3f2ed)](LICENSE)
 
