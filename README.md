@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://optbot.study/">
-    <img src="public/social-preview.svg" alt="Optbot Privacy Notice Study" width="100%" />
+    <img src="docs/assets/robot.png" alt="Optbot — cobalt-blue robot with an ASCII-style optbot wordmark" width="400" />
   </a>
 </p>
 
@@ -73,5 +73,9 @@ Infrastructure changes also require the Terraform checks in [Develop and verify 
 Copyright (c) 2026 Eric Candela. Original project code and documentation are available under the [MIT License](LICENSE).
 
 Third-party software, fonts, icons, and research materials remain subject to their respective terms. Participant responses and other research data aren't included in this license.
+
+## Citations
+
+- Robot artwork adapted from [Robot icons created by edt.im — Flaticon](https://www.flaticon.com/free-icons/robot); recolored and paired with an ASCII wordmark.
 
 Use [`CITATION.cff`](CITATION.cff) to cite the software. Record academic sources and adapted research materials in [Document research sources](docs/research-sources.md).
